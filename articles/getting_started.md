@@ -1,26 +1,26 @@
 ---
-title: "Getting Started with Ruby and RabbitMQ with Bunny"
+title: "Getting Started with RabbitMQ on JRuby using Hot Bunnies"
 layout: article
 ---
 
 ## About this guide
 
-This guide is a quick tutorial that helps you to get started with the AMQP 0.9.1 specification in general and [Bunny](http://github.com/ruby-amqp/bunny) in particular.
+This guide is a quick tutorial that helps you to get started with RabbitMQ and [Hot Bunnies](http://github.com/ruby-amqp/hot_bunnies).
 It should take about 20 minutes to read and study the provided code examples. This guide covers:
 
  * Installing RabbitMQ, a mature popular messaging broker server.
- * Installing Bunny via [Rubygems](http://rubygems.org) and [Bundler](http://gembundler.com).
+ * Installing Hot Bunnies via [Rubygems](http://rubygems.org) and [Bundler](http://gembundler.com).
  * Running a "Hello, world" messaging example that is a simple demonstration of 1:1 communication.
  * Creating a "Twitter-like" publish/subscribe example with one publisher and four subscribers that demonstrates 1:n communication.
  * Creating a topic routing example with two publishers and eight subscribers showcasing n:m communication when subscribers only receive messages that they are interested in.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a> (including images and stylesheets).
-The source is available [on GitHub](https://github.com/ruby-amqp/rubybunny.info).
+The source is available [on GitHub](https://github.com/ruby-amqp/hotbunnies.info).
 
 
-## Which versions of Bunny does this guide cover?
+## Which versions of Hot Bunnies does this guide cover?
 
-This guide covers Bunny 0.9.0 and later.
+This guide covers Hot Bunnies 2.0, including preview releases.
 
 ## Installing RabbitMQ
 
@@ -38,32 +38,24 @@ On Debian and Ubuntu, you can either [download the RabbitMQ .deb package](http:/
 For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an [RPM package](http://www.rabbitmq.com/install.html#rpm).
 
 <div class="alert alert-error"><strong>Note:</strong> The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10
-are outdated and <strong>will not work with Bunny 0.9.0 and later versions</strong> (you will need at least RabbitMQ v2.0 for use with this guide).</div>
+are outdated and <strong>will not work with Hot Bunnies</strong> (you will need at least RabbitMQ v2.0 for use with this guide).</div>
 
-## Installing Bunny
+## Installing Hot Bunnies
 
 ### Make sure that you have Ruby and [Rubygems](http://docs.rubygems.org/read/chapter/3) installed
 
-This guide assumes that you have installed one of the following supported Ruby implementations:
+This guide assumes that you have JRuby 1.7+ installed.
 
- * Ruby v1.9.3
- * Ruby v1.9.2
- * Ruby v2.0
- * JRuby v1.7.0 or higher
- * Rubinius v2.0 or higher
- * Ruby Enterprise Edition
- * Ruby v1.8.7
+### You can use Rubygems to install Hot Bunnies
 
-### You can use Rubygems to install Bunny
+    gem install hot_bunnies
 
-    gem install bunny --pre
-
-### Adding Bunny as a dependency with Bundler
+### Adding Hot Bunnies as a dependency with Bundler
 
 ``` ruby
-source :rubygems
+source "https://rubygems.org"
 
-gem "bunny", "~> 0.9.0.pre9"
+gem "hot_bunnies", "~> 2.0.0.pre1"
 ```
 
 ### Verifying your installation
@@ -72,10 +64,10 @@ Verify your installation with a quick irb session:
 
 ```
 irb -rubygems
-:001 > require "bunny"
+:001 > require "hot_bunnies"
 => true
-:002 > Bunny::VERSION
-=> "0.9.0.pre9"
+:002 > HotBunnies::VERSION
+=> "2.0.0.pre1"
 ```
 
 ## "Hello, world" example
@@ -83,26 +75,23 @@ irb -rubygems
 Let us begin with the classic "Hello, world" example. First, here is the code:
 
 ``` ruby
-#!/usr/bin/env ruby
-# encoding: utf-8
-
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch = conn.create_channel
-q  = ch.queue("bunny.examples.hello_world", :auto_delete => true)
-x  = ch.default_exchange
+q  = ch.queue("hot_bunnies.examples.hello_world", :auto_delete => true)
 
-q.subscribe do |delivery_info, metadata, payload|
+c  = q.subscribe do |metadata, payload|
   puts "Received #{payload}"
 end
 
-x.publish("Hello!", :routing_key => q.name)
+q.publish("Hello!", :routing_key => q.name)
 
 sleep 1.0
+
+c.cancel
 conn.close
 ```
 
@@ -110,14 +99,13 @@ This example demonstrates a very common communication scenario: *application A* 
 
 ``` ruby
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 ```
 
-is the simplest way to load Bunny if you have installed it with RubyGems, but remember that you can omit the rubygems line if your environment does not need it. The following piece of code
+is the simplest way to load Hot Bunnies if you have installed it with RubyGems, but remember that you can omit the rubygems line if your environment does not need it. The following piece of code
 
 ``` ruby
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 ```
 
 connects to RabbitMQ running on localhost, with the default port (5672), username (guest), password (guest) and virtual host ('/').
@@ -130,13 +118,13 @@ ch = conn.create_channel
 
 opens a new _channel_. AMQP 0.9.1 is a multi-channeled protocol that uses channels to multiplex a TCP connection.
 
-Channels are opened on a connection. `Bunny::Session#create_channel` will return only when Bunny
+Channels are opened on a connection. `HotBunnies::Session#create_channel` will return only when Hot Bunnies
 receives a confirmation that the channel is open from RabbitMQ.
 
 This line
 
 ``` ruby
-q  = ch.queue("bunny.examples.hello_world", :auto_delete => true)
+q  = ch.queue("hot_bunnies.examples.hello_world", :auto_delete => true)
 ```
 
 declares a **queue** on the channel that we have just opened. Consumer applications get messages from queues. We declared this queue with
@@ -153,13 +141,13 @@ In this particular example, there are no explicitly defined bindings. The exchan
 bindings to all queues. Before we get into that, let us see how we define a handler for incoming messages
 
 ``` ruby
-q.subscribe do |delivery_info, metadata, payload|
+c = q.subscribe do |delivery_info, metadata, payload|
   puts "Received #{payload}"
 end
 ```
 
-`Bunny::Queue#subscribe` takes a block that will be called every time a message arrives. This will happen in a thread pool, so `Bunny::Queue#subscribe`
-does not block the thread that invokes it.
+`HotBunnies::Queue#subscribe` takes a block that will be called every time a message arrives. This will happen in a thread pool, so `HotBunnies::Queue#subscribe`
+does not block the thread that invokes it. It returns a **consumer**, a message delivery subscription that can be cancelled.
 
 Finally, we publish our message
 
@@ -188,27 +176,28 @@ follow the official NBA account on Blabbr to get updates about what is happening
 
 ``` ruby
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new("amqp://guest:guest@localhost:55672")
-conn.start
+conn = HotBunnies.connect
 
 ch  = conn.create_channel
-x   = ch.fanout("nba.scores")
+x   = ch.fanout("hot_bunnies.nba.scores")
 
-ch.queue("joe",   :auto_delete => true).bind(x).subscribe do |delivery_info, metadata, payload|
+ch.queue("joe",   :auto_delete => true).bind(x).subscribe do |meta, payload|
   puts "#{payload} => joe"
 end
 
-ch.queue("aaron", :auto_delete => true).bind(x).subscribe do |delivery_info, metadata, payload|
+ch.queue("aaron", :auto_delete => true).bind(x).subscribe do |meta, payload|
   puts "#{payload} => aaron"
 end
 
-ch.queue("bob",   :auto_delete => true).bind(x).subscribe do |delivery_info, metadata, payload|
+ch.queue("bob",   :auto_delete => true).bind(x).subscribe do |meta, payload|
   puts "#{payload} => bob"
 end
 
-x.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
+x.publish("BOS 101, NYK 89")
+x.publish("ORL 85, ALT 88")
+sleep 1.0
 
 conn.close
 ```
@@ -222,27 +211,28 @@ In this example, opening a channel is no different to opening a channel in the p
 x   = ch.fanout("nba.scores")
 ```
 
-The exchange that we declare above using `Bunny::Channel#fanout` is a **fanout exchange**.
+The exchange that we declare above using `HotBunnies::Channel#fanout` is a **fanout exchange**.
 A fanout exchange delivers messages to all of the queues that are bound to it: exactly what we want in the case of Blabbr!
 
 This piece of code
 
 ``` ruby
-ch.queue("joe",   :auto_delete => true).bind(x).subscribe do |delivery_info, metadata, payload|
+ch.queue("joe",   :auto_delete => true).bind(x).subscribe do |meta, payload|
   puts "#{payload} => joe"
 end
 ```
 
 is similar to the subscription code that we used for message delivery previously,
-but what does that `Bunny::Queue#bind` method do? It sets up a binding between the queue and
+but what does that `HotBunnies::Queue#bind` method do? It sets up a binding between the queue and
 the exchange that you pass to it. We need to do this to make sure that our fanout exchange
 routes messages to the queues of any subscribed followers.
 
 ``` ruby
-x.publish("BOS 101, NYK 89").publish("ORL 85, ALT 88")
+x.publish("BOS 101, NYK 89")
+x.publish("ORL 85, ALT 88")
 ```
 
-demonstrates `Bunny::Exchange#publish` call chaining. Blabbr members use a fanout exchange for
+publishes two messages using `HotBunnies::Exchange#publish`. Blabbr members use a fanout exchange for
 publishing, so there is no need to specify a message routing key because every queue that is
 bound to the exchange will get its own copy of all messages, regardless of the queue name and
 routing key used.
@@ -272,49 +262,45 @@ appears as an update for California, but also should show up on the North Americ
 Here is the code:
 
 ``` ruby
-#!/usr/bin/env ruby
-# encoding: utf-8
-
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
-connection = Bunny.new
-connection.start
+connection = HotBunnies.connect
 
-channel  = connection.create_channel
+ch  = connection.create_channel
 # topic exchange name can be any string
-exchange = channel.topic("weathr", :auto_delete => true)
+x   = ch.topic("weathr", :auto_delete => true)
 
 # Subscribers.
-channel.queue("", :exclusive => true).bind(exchange, :routing_key => "americas.north.#").subscribe do |delivery_info, metadata, payload|
-  puts "An update for North America: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("", :exclusive => true).bind(x, :routing_key => "americas.north.#").subscribe do |metadata, payload|
+  puts "An update for North America: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |delivery_info, metadata, payload|
-  puts "An update for South America: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("americas.south").bind(x, :routing_key => "americas.south.#").subscribe do |metadata, payload|
+  puts "An update for South America: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("us.california").bind(exchange, :routing_key => "americas.north.us.ca.*").subscribe do |delivery_info, metadata, payload|
-  puts "An update for US/California: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("us.california").bind(x, :routing_key => "americas.north.us.ca.*").subscribe do |metadata, payload|
+  puts "An update for US/California: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("us.tx.austin").bind(exchange, :routing_key => "#.tx.austin").subscribe do |delivery_info, metadata, payload|
-  puts "An update for Austin, TX: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("us.tx.austin").bind(x, :routing_key => "#.tx.austin").subscribe do |metadata, payload|
+  puts "An update for Austin, TX: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("it.rome").bind(exchange, :routing_key => "europe.italy.rome").subscribe do |delivery_info, metadata, payload|
-  puts "An update for Rome, Italy: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("it.rome").bind(x, :routing_key => "europe.italy.rome").subscribe do |metadata, payload|
+  puts "An update for Rome, Italy: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("asia.hk").bind(exchange, :routing_key => "asia.southeast.hk.#").subscribe do |delivery_info, metadata, payload|
-  puts "An update for Hong Kong: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("asia.hk").bind(x, :routing_key => "asia.southeast.hk.#").subscribe do |metadata, payload|
+  puts "An update for Hong Kong: #{payload}, routing key is #{metadata.routing_key}"
 end
 
-exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego").
-  publish("Berkeley update",         :routing_key => "americas.north.us.ca.berkeley").
-  publish("San Francisco update",    :routing_key => "americas.north.us.ca.sanfrancisco").
-  publish("New York update",         :routing_key => "americas.north.us.ny.newyork").
-  publish("São Paolo update",        :routing_key => "americas.south.brazil.saopaolo").
-  publish("Hong Kong update",        :routing_key => "asia.southeast.hk.hongkong").
-  publish("Kyoto update",            :routing_key => "asia.southeast.japan.kyoto").
-  publish("Shanghai update",         :routing_key => "asia.southeast.prc.shanghai").
-  publish("Rome update",             :routing_key => "europe.italy.roma").
-  publish("Paris update",            :routing_key => "europe.france.paris")
+x.publish("San Diego update",     :routing_key => "americas.north.us.ca.sandiego")
+x.publish("Berkeley update",      :routing_key => "americas.north.us.ca.berkeley")
+x.publish("San Francisco update", :routing_key => "americas.north.us.ca.sanfrancisco")
+x.publish("New York update",      :routing_key => "americas.north.us.ny.newyork")
+x.publish("São Paolo update",     :routing_key => "americas.south.brazil.saopaolo")
+x.publish("Hong Kong update",     :routing_key => "asia.southeast.hk.hongkong")
+x.publish("Kyoto update",         :routing_key => "asia.southeast.japan.kyoto")
+x.publish("Shanghai update",      :routing_key => "asia.southeast.prc.shanghai")
+x.publish("Rome update",          :routing_key => "europe.italy.roma")
+x.publish("Paris update",         :routing_key => "europe.france.paris")
 
 sleep 1.0
 
@@ -324,7 +310,7 @@ connection.close
 The first line that is different from the Blabbr example is
 
 ``` ruby
-exchange = channel.topic("weathr", :auto_delete => true)
+x = ch.topic("weathr", :auto_delete => true)
 ```
 
 We use a topic exchange here. Topic exchanges are used for [multicast](http://en.wikipedia.org/wiki/Multicast) messaging
@@ -333,11 +319,11 @@ your favourite blog as opposed to the full feed). Routing with a topic exchange 
 on binding, for example:
 
 ``` ruby
-channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |delivery_info, metadata, payload|
-  puts "An update for South America: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |metadata, payload|
+  puts "An update for South America: #{payload}, routing key is #{metadata.routing_key}"
 end
 ```
-Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `Bunny::Queue#bind` method.  This means that only messages with a routing key matching "americas.south.#" will be routed to that queue. A routing pattern consists of several words separated by dots, in a similar way to URI path segments joined by slashes. Here are a few examples:
+Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `HotBunnies::Queue#bind` method.  This means that only messages with a routing key matching "americas.south.#" will be routed to that queue. A routing pattern consists of several words separated by dots, in a similar way to URI path segments joined by slashes. Here are a few examples:
 
  * asia.southeast.thailand.bangkok
  * sports.basketball
@@ -371,7 +357,7 @@ A (very simplistic) diagram to demonstrate topic exchange in action:
 ![Weathr Data Flow](https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/003_weathr_example_routing.png)
 
 
-As in the previous examples, the block that we pass to `Bunny::Queue#subscribe` takes multiple arguments:
+As in the previous examples, the block that we pass to `HotBunnies::Queue#subscribe` takes multiple arguments:
 **delivery information**, **message metadata** (properties) and **message body** (often called the **payload**).
 Long story short, the metadata parameter lets you access metadata associated with the message. Some examples of message metadata
 attributes are:
@@ -389,8 +375,8 @@ and so on.
 As the following binding demonstrates, `"#"` and `"*"` can also appear at the beginning of routing patterns:
 
 ``` ruby
-channel.queue("us.tx.austin").bind(exchange, :routing_key => "#.tx.austin").subscribe do |delivery_info, metadata, payload|
-  puts "An update for Austin, TX: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("us.tx.austin").bind(x, :routing_key => "#.tx.austin").subscribe do |metadata, payload|
+  puts "An update for Austin, TX: #{payload}, routing key is #{metadata.routing_key}"
 end
 ```
 
@@ -399,8 +385,8 @@ a message published with a routing key of `"americas.north.us.ca.berkeley"` woul
 that we declared by passing a blank string as the name:
 
 ``` ruby
-channel.queue("", :exclusive => true).bind(exchange, :routing_key => "americas.north.#").subscribe do |delivery_info, metadata, payload|
-  puts "An update for North America: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("", :exclusive => true).bind(exchange, :routing_key => "americas.north.#").subscribe do |metadata, payload|
+  puts "An update for North America: #{payload}, routing key is #{metadata.routing_key}"
 end
 ```
 
@@ -409,7 +395,7 @@ The name of the server-named queue is generated by the broker and sent back to t
 
 ## Wrapping up
 
-This is the end of the tutorial. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and Bunny. This is only the tip of the iceberg.
+This is the end of the tutorial. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and Hot Bunnies. This is only the tip of the iceberg.
 RabbitMQ has many more features to offer:
 
  * Reliable delivery of messages
@@ -419,7 +405,7 @@ RabbitMQ has many more features to offer:
  * Message metadata attributes
  * High Availability features
 
-and so on. Other guides explain these features in depth, as well as use cases for them. To stay up to date with Bunny development, [follow @rubyamqp on Twitter](http://twitter.com/rubyamqp)
+and so on. Other guides explain these features in depth, as well as use cases for them. To stay up to date with Hot Bunnies development, [follow @rubyamqp on Twitter](http://twitter.com/rubyamqp)
 and [join our mailing list](http://groups.google.com/group/ruby-amqp).
 
 ## What to read next
@@ -430,8 +416,8 @@ fault-tolerant message processing with acknowledgements and error handling.
 We recommend that you read the following guides next, if possible, in this order:
 
  * [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html). A simple 2 page long introduction to the AMQP Model concepts and features. Understanding the AMQP 0.9.1 Model
-   will make a lot of other documentation, both for Bunny and RabbitMQ itself, easier to follow. With this guide, you don't have to waste hours of time reading the whole specification.
- * [Connecting to the broker](/articles/connecting.html). This guide explains how to connect to an RabbitMQ and how to integrate Bunny into standalone and Web applications.
+   will make a lot of other documentation, both for Hot Bunnies and RabbitMQ itself, easier to follow. With this guide, you don't have to waste hours of time reading the whole specification.
+ * [Connecting to the broker](/articles/connecting.html). This guide explains how to connect to an RabbitMQ and how to integrate Hot Bunnies into standalone and Web applications.
  * [Queues and Consumers](/articles/queues.html). This guide focuses on features that consumer applications use heavily.
  * [Exchanges and Publishers](/articles/exchanges.html). This guide focuses on features that producer applications use heavily.
  * [Error Handling and Recovery](/articles/error_handling.html). This guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
@@ -439,6 +425,6 @@ We recommend that you read the following guides next, if possible, in this order
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Bunny mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
