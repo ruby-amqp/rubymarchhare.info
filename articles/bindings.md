@@ -5,15 +5,15 @@ layout: article
 
 ## About This Guide
 
-This guide covers bindings in AMQP 0.9.1, what they are, what role they play and how to accomplish typical operations using Bunny.
+This guide covers bindings in RabbitMQ, what they are, what role they play and how to accomplish typical operations using Bunny.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 (including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubybunny.info).
 
 
-## What version of Bunny does this guide cover?
+## What version of Hot Bunnies does this guide cover??
 
-This guide covers Bunny 0.9.0.
+This guide covers Hot Bunnies 2.0.
 
 
 ## Bindings in AMQP 0.9.1
@@ -42,7 +42,7 @@ If an application wants to connect a queue to an exchange, it needs to _bind_ th
 ## Binding Queues to Exchanges
 
 In order to receive messages, a queue needs to be bound to at least one exchange. Most of the time binding is explcit (done by applications).
-To bind a queue to an exchange, use `Bunny::Queue#bind` where the argument passed can be either an `Bunny::Exchange` instance or a string.
+To bind a queue to an exchange, use `HotBunnies::Queue#bind` where the argument passed can be either an `HotBunnies::Exchange` instance or a string.
 
 ``` ruby
 q.bind(x)
@@ -57,7 +57,7 @@ q.bind("amq.fanout")
 
 ## Unbinding queues from exchanges
 
-To unbind a queue from an exchange use `Bunny::Queue#unbind`:
+To unbind a queue from an exchange use `HotBunnies::Queue#unbind`:
 
 ``` ruby
 q.unbind(x)
@@ -96,11 +96,11 @@ Unroutable messages are either dropped or returned to producers. RabbitMQ extens
 RabbitMQ's [Alternate Exchanges extension](http://www.rabbitmq.com/ae.html) makes it possible to route unroutable messages to another exchange.
 Bunny support for it is documented in the [RabbitMQ Extensions guide](/articles/extensions.html).
 
-Bunny provides a way to handle returned messages with the `Bunny::Exchange#on_return` method:
+Bunny provides a way to handle returned messages with the `HotBunnies::Exchange#on_return` method:
 
 ``` ruby
-x.on_return do |basic_return, properties, payload|
-  puts "#{payload} was returned! reply_code = #{basic_return.reply_code}, reply_text = #{basic_return.reply_text}"
+ch.on_return do |reply_code, reply_text, exchange, routing_key, basic_properties, payload|
+  puts "Got a returned message: #{payload}, reply: #{reply_code} #{reply_text}"
 end
 ```
 
@@ -122,6 +122,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Bunny mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
