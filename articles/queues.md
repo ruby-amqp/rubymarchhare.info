@@ -1,24 +1,24 @@
 ---
-title: "Working with RabbitMQ queues and consumers from Ruby with Bunny"
+title: "Working with RabbitMQ queues and consumers from Ruby with Hot Bunnies"
 layout: article
 ---
 
 ## About this guide
 
-This guide covers everything related to queues in the AMQP 0.9.1 specification, common usage scenarios and how to accomplish
-typical operations using Bunny.
+This guide covers everything related to RabbitMQ queues, common usage scenarios and how to accomplish
+typical operations using Hot Bunnies.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubybunny.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
 
-## What version of Bunny does this guide cover?
+## What version of Hot Bunnies does this guide cover?
 
-This guide covers Bunny 0.9.0.
+This guide covers Hot Bunnies 2.0.
 
 
-## Queues in AMQP 0.9.1: Overview
+## RabbitMQ Queues: Overview
 
-### What are AMQP Queues?
+### What are Queues?
 
 *Queues* store and forward messages to consumers. They are similar to mailboxes in SMTP. Messages flow from producing applications to [exchanges](/articles/exchanges.html)
 that route them to queues and finally, queues deliver the messages to consumer applications (or consumer applications fetch messages as needed).
@@ -26,7 +26,7 @@ that route them to queues and finally, queues deliver the messages to consumer a
 **Note** that unlike some other messaging protocols/systems, messages are not delivered directly to queues. They are delivered to exchanges that route
 messages to queues using rules known as *bindings*.
 
-AMQP is a programmable protocol, so queues and bindings alike are declared by applications.
+AMQP 0.9.1 is a programmable protocol, so queues and bindings alike are declared by applications.
 
 ### Concept of Bindings
 
@@ -47,15 +47,24 @@ These attributes define how queues can be used, their life-cycle, and other aspe
 
 ## Queue Names and Declaring Queues
 
-Every AMQP queue has a name that identifies it. Queue names often contain several segments separated by a dot ".", in a similar fashion to URI path segments being separated by a slash "/", although almost any string can represent a segment (with some limitations - see below).
+Every queue has a name that identifies it. Queue names often contain
+several segments separated by a dot ".", in a similar fashion to URI
+path segments being separated by a slash "/", although almost any
+string can represent a segment (with some limitations - see below).
 
-Before a queue can be used, it has to be *declared*. Declaring a queue will cause it to be created if it does not already exist. The declaration will have no effect if the queue does already exist and its attributes are the *same as those in the declaration*. When the existing queue attributes are not the same as those in the declaration a channel-level exception is raised. This case is explained later in this guide.
+Before a queue can be used, it has to be *declared*. Declaring a queue
+will cause it to be created if it does not already exist. The
+declaration will have no effect if the queue does already exist and
+its attributes are the *same as those in the declaration*. When the
+existing queue attributes are not the same as those in the declaration
+a channel-level exception is raised. This case is explained later in
+this guide.
 
 ### Explicitly Named Queues
 
 Applications may pick queue names or ask the broker to generate a name for them.
 
-To declare a queue with a particular name, for example, "images.resize", use the `Bunny::Channel#queue` method:
+To declare a queue with a particular name, for example, "images.resize", use the `HotBunnies::Channel#queue` method:
 
 ``` ruby
 ch.queue("images.resize", :exclusive => false, :auto_delete => true)
@@ -64,10 +73,9 @@ ch.queue("images.resize", :exclusive => false, :auto_delete => true)
 The same example in context:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q    = ch.queue("images.resize", :exclusive => false, :auto_delete => true)
@@ -77,7 +85,7 @@ q    = ch.queue("images.resize", :exclusive => false, :auto_delete => true)
 ### Server-named queues
 
 To ask an AMQP broker to generate a unique queue name for you, pass an *empty string* as the queue name argument. A generated queue name (like *amq.gen-JZ46KgZEOZWg-pAScMhhig*)
-will be assigned to the `Bunny::Queue` instance that the method returns:
+will be assigned to the `HotBunnies::Queue` instance that the method returns:
 
 ``` ruby
 ch.queue("", :exclusive => true)
@@ -86,10 +94,9 @@ ch.queue("", :exclusive => true)
 The same example in context:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true)
@@ -105,7 +112,7 @@ result in a channel-level exception with reply code `403 (ACCESS_REFUSED)` and a
 
     ACCESS_REFUSED - queue name 'amq.queue' contains reserved prefix 'amq.*'
     
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Bunny will raise a `Bunny::ChannelAlreadyClosed` error.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Bunny will raise a `HotBunnies::ChannelAlreadyClosed` error.
 
 ### Queue Re-Declaration With Different Attributes
 
@@ -114,7 +121,7 @@ will be raised. The reply text will be similar to this:
 
     PRECONDITION_FAILED - parameters for queue 'bunny.examples.channel_exception' in vhost '/' not equivalent
 
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Bunny will raise a `Bunny::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Bunny will raise a `HotBunnies::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
 
 ## Queue Life-cycle Patterns
 
@@ -157,10 +164,9 @@ ch.queue("images.resize", :durable => true, :auto_delete => false)
 The same example in context:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q    = ch.queue("images.resize", :durable => true, :auto_delete => false)
@@ -178,10 +184,9 @@ ch.queue("", :exclusive => true)
 The same example in context:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true)
@@ -198,7 +203,7 @@ Exclusive queues will be deleted when the connection they were declared on is cl
 In order to receive messages, a queue needs to be bound to at least one exchange. Most of the time binding is explcit (done by applications). **Please note:** All queues are automatically bound to the default unnamed RabbitMQ direct exchange with a routing key that is the same as the queue name (see [Exchanges and Publishing](/articles/exchanges.html) guide for more details).
 
 To bind a queue to an exchange,
-use the `Bunny::Queue#bind` method:
+use the `HotBunnies::Queue#bind` method:
 
 ``` ruby
 q = ch.queue("", :exclusive => true)
@@ -210,10 +215,9 @@ q.bind(x)
 The same example in context:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q = ch.queue("", :exclusive => true)
@@ -225,7 +229,7 @@ q.bind(x)
 
 ## Subscribing to receive messages ("push API")
 
-To request that the server starts a *consumer* (queue subscription) to enable an application to process messages as they arrive in a queue, one uses the `Bunny::Queue#subscribe` or `Bunny::Queue#subscribe_with` methods.
+To request that the server starts a *consumer* (queue subscription) to enable an application to process messages as they arrive in a queue, one uses the `HotBunnies::Queue#subscribe` or `HotBunnies::Queue#subscribe_with` methods.
 
 Consumers last as long as the channel that they were declared on,
 or until the client cancels them (unsubscribes).
@@ -238,11 +242,14 @@ Consumers have a number of events that they can react to:
  
 #### Consumer Tags
 
-Consumers are identified by unique strings called *consumer tags*. The `Bunny::Queue#subscribe` method can take a `:consumer_tag` argument or let RabbitMQ generate one
+Consumers are identified by unique strings called *consumer tags*. The `HotBunnies::Queue#subscribe` method can take a `:consumer_tag` argument or let RabbitMQ generate one
 
 ```ruby
 q.subscribe(:consumer_tag => "unique_consumer_001")
 ```
+
+If `:consumer_tag` is omitted, RabbitMQ will generate one. It is usually not necessary to define consumer tags
+manually.
 
 ### Handling Messages With a Block
 
@@ -251,56 +258,49 @@ One way to define a handler is:
 
 ``` ruby
 q = ch.queue("", :exclusive => true)
-q.subscribe(:block => true, :ack => true) do |delivery_info, properties, payload|
-  puts "Received #{payload}, message properties are #{properties.inspect}"
+q.subscribe(:block => true, :ack => true) do |metadata, payload|
+  puts "Received #{payload}, message metadata are #{metadata.inspect}"
 end
 ```
 
 The same example in context:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q = ch.queue("", :exclusive => true)
-q.subscribe(:block => true, :ack => true) do |delivery_info, properties, payload|
-  puts "Received #{payload}, message properties are #{properties.inspect}"
+q.subscribe(:block => true, :ack => true) do |metadata, payload|
+  puts "Received #{payload}, message metadata are #{metadata.inspect}"
 end
 ```
 
 The block should accept three arguments:
 
  * Delivery information (can be used to acknowledge messages, for example; will be covered in more detail later)
- * Message properties (metadata)
+ * Message metadata (metadata)
  * Message payload (body)
 
-Both delivery information and message properties can be treated as Hash-like objects or structures.
-For example, to get delivery tag, you can use either
+Both delivery information and message metadata can be treated as Hash-like objects or structures.
+For example, to get delivery tag, use
 
 ``` ruby
-delivery_info[:delivery_tag]
-```
-
-or
-
-``` ruby
-delivery_info.delivery_tag
+metadata.delivery_tag
 ```
 
 #### Blocking or Non-Blocking Behavior
 
-The subscribe method will not block the calling thread by default. If you want to block the thread, pass `:block => true` to
-`Bunny::Queue#subscribe`. In Bunny 0.9.0 and later, network activity and dispatch of delivered messages
+The subscribe method will not block the calling thread by default. If you want to block the caller, pass `:block => true` to
+`HotBunnies::Queue#subscribe`. In Bunny 0.9.0 and later, network activity and dispatch of delivered messages
 to consumers happens in separate threads that Bunny maintains internally, so it does not have to
-block the thread that calls `Bunny::Queue#subscribe`. However, it may be convenient to do so
+block the thread that calls `HotBunnies::Queue#subscribe`. However, it may be convenient to do so
 in long-running consumer applications.
 
 ### Accessing Message Delivery Information
 
-The *delivery_info* parameter in the example above provides access to message delivery information:
+The *metadata* parameter in the example above provides access to message delivery information:
 
  * Consumer tag this delivery is for
  * Delivery tag
@@ -309,21 +309,15 @@ The *delivery_info* parameter in the example above provides access to message de
  * Message routing key
  
 Message delivery information can be treated as a Hash-like object or structure.
-For example, to get routing key, you can use either
+For example, to get routing key, use
 
 ``` ruby
-delivery_info[:routing_key]
-```
-
-or
-
-``` ruby
-delivery_info.routing_key
+metadata.routing_key
 ```
   
-### Accessing Message Properties (Metadata)
+### Accessing Message Metadata (Metadata)
 
-The *properties* parameter in the example above provides access to message metadata:
+The *metadata* parameter in the example above provides access to message metadata:
 
  * Message content type
  * Message content encoding
@@ -331,84 +325,79 @@ The *properties* parameter in the example above provides access to message metad
  * Message priority
  * Producer application id
 
-Message properties can be treated as a Hash-like object or structure.
-For example, to get message type, you can use either
+Message metadata can be treated as a Hash-like object or structure.
+For example, to get message type, use
 
 ``` ruby
-properties[:type]
-```
-
-or
-
-``` ruby
-properties.type
+metadata.type
 ```
 
 An example to demonstrate how to access some of those attributes:
 
 ``` ruby
-require 'bunny'
+require 'hot_bunnies'
 
-connection = Bunny.new
-connection.start
+connection = HotBunnies.connect
 
 ch = connection.create_channel
-q = connection.queue('', :exclusive => true)
+q  = connection.queue('', :exclusive => true)
 x  = ch.default_exchange
 
 # set up the consumer
-q.subscribe(:exclusive => true, :ack => false) do |delivery_info, properties, payload|
-  puts properties.content_type # => "application/octet-stream"
-  puts properties.priority     # => 8
+q.subscribe do |metadata, payload|
+  puts metadata.content_type # => "application/octet-stream"
+  puts metadata.priority     # => 8
 
-  puts properties.headers["time"] # => a Time instance
+  puts metadata.headers["time"] # => a Time instance
 
-  puts properties.headers["coordinates"]["latitude"] # => 59.35
-  puts properties.headers["participants"]            # => 11
-  puts properties.headers["venue"]                   # => "Stockholm"
-  puts properties.headers["true_field"]              # => true
-  puts properties.headers["false_field"]             # => false
-  puts properties.headers["nil_field"]               # => nil
-  puts properties.headers["ary_field"].inspect       # => ["one", 2.0, 3, [{ "abc" => 123}]]
+  puts metadata.headers["coordinates"]["latitude"] # => 59.35
+  puts metadata.headers["participants"]            # => 11
+  puts metadata.headers["venue"]                   # => "Stockholm"
+  puts metadata.headers["true_field"]              # => true
+  puts metadata.headers["false_field"]             # => false
+  puts metadata.headers["nil_field"]               # => nil
 
-  puts properties.timestamp      # => a Time instance
-  puts properties.type           # => "kinda.checkin"
-  puts properties.reply_to       # => "a.sender"
-  puts properties.correlation_id # => "r-1"
-  puts properties.message_id     # => "m-1"
-  puts properties.app_id         # => "bunny.example"
+  puts metadata.timestamp      # => a date/time instance
+  puts metadata.type           # => "kinda.checkin"
+  puts metadata.reply_to       # => "a.sender"
+  puts metadata.correlation_id # => "r-1"
+  puts metadata.message_id     # => "m-1"
+  puts metadata.app_id         # => "hot_bunnies.example"
 
-  puts delivery_info.consumer_tag # => a string
-  puts delivery_info.redelivered? # => false
-  puts delivery_info.delivery_tag # => 1
-  puts delivery_info.routing_key  # => server generated queue name prefixed with "amq.gen-"
-  puts delivery_info.exchange     # => ""
+  puts metadata.consumer_tag # => a string
+  puts metadata.redelivered? # => false
+  puts metadata.delivery_tag # => 1
+  puts metadata.routing_key  # => server generated queue name prefixed with "amq.gen-"
+  puts metadata.exchange     # => ""
 end
 
 # publishing
 x.publish("hello",
           :routing_key => "#{q.name}",
-          :app_id      => "bunny.example",
-          :priority    => 8,
-          :type        => "kinda.checkin",
-          # headers table keys can be anything
-          :headers     => {
-            :coordinates => {
-              :latitude  => 59.35,
-              :longitude => 18.066667
+          :properties => {
+            :app_id       => "hot_bunnies.example",
+            :priority     => 8,
+            :content_type => "application/octet-stream"
+            :type         => "kinda.checkin",
+            # headers table keys can be anything
+            :headers     => {
+              :coordinates => {
+                :latitude  => 59.35,
+                :longitude => 18.066667
+              },
+              :time         => Time.now,
+              :participants => 11,
+              :venue        => "Stockholm",
+              :true_field   => true,
+              :false_field  => false,
+              :nil_field    => nil,
+              :ary_field    => ["one", 2.0, 3, [{"abc" => 123}]]
             },
-            :time         => Time.now,
-            :participants => 11,
-            :venue        => "Stockholm",
-            :true_field   => true,
-            :false_field  => false,
-            :nil_field    => nil,
-            :ary_field    => ["one", 2.0, 3, [{"abc" => 123}]]
-          },
-          :timestamp      => Time.now.to_i,
-          :reply_to       => "a.sender",
-          :correlation_id => "r-1",
-          :message_id     => "m-1")
+            :timestamp      => Time.now.to_i,
+            :reply_to       => "a.sender",
+            :correlation_id => "r-1",
+            :message_id     => "m-1"
+          })
 
 sleep 1.0
 connection.close
@@ -421,155 +410,23 @@ The full list of message delivery information parameters is:
  * `:exchange`
  * `:routing_key`
  
-The full list of message properties parameters (**note** that most of them are optional and may not be present) is:
+The full list of message metadata parameters (note that most of them are optional and may not be present) is:
 
- * `:content_type` _(always present)_
- * `:content_encoding`
- * `:headers`
- * `:delivery_mode` _(always present)_
- * `:priority` _(always present)_
- * `:correlation_id`
- * `:reply_to`
- * `:expiration`
- * `:message_id`
- * `:timestamp`
- * `:type`
- * `:user_id`
- * `:app_id`
- * `:cluster_id`
+ * `content_type`
+ * `content_encoding`
+ * `headers`
+ * `delivery_mode` _(always present)_
+ * `priority`
+ * `correlation_id`
+ * `reply_to`
+ * `expiration`
+ * `message_id`
+ * `timestamp`
+ * `type`
+ * `user_id`
+ * `app_id`
+ * `cluster_id`
 
-
-
-### Consumer Instances
-
-Bunny 0.9.0 introduces a new `Bunny::Consumer` class which takes the following positional arguments when instantiated:
-
- * `channel` _(mandatory)_
- * `queue` _(mandatory)_
- * `consumer_tag` _(default = "")_
- * `no_ack` _(default = true)_
- * `exclusive` _(default = false)_
- * `arguments` _(default = {})_
- 
-To create a consumer object:
-
-```ruby
-class ExampleConsumer < Bunny::Consumer
-  def cancelled?
-    @cancelled
-  end
-
-  def handle_cancellation(_)
-    @cancelled = true
-  end
-end
-
-connection = Bunny.new
-connection.start
-
-ch = connection.create_channel
-q = connection.queue("testq")
-
-consumer = ExampleConsumer.new(ch, q, "my_example_consumer", false, false, {:test_arg => 'test'})
-```
-
-or
-
-```ruby
-consumer = ExampleConsumer.new(ch, q)
-```
-
-If the `consumer_tag` is empty then Bunny will generate one that looks something like *bunny-1357204208000-17043847598*, but it can also be set in the code:
-
-```ruby
-consumer.consumer_tag = "another_example_consumer"
-```
-
-`Bunny::Consumer` contains a *delivery handler* and when the consumer consumes a message then the delivery information, message properties (metadata) and body (payload) are
-passed to it. In order to process consumed messages a block is passed to the consumer:
-
-```ruby
-consumer.on_delivery() do |delivery_info, metadata, payload|
-  puts payload
-end
-```
-
-Consumers may need to react to events other than message delivery.
-For example, consumers can be cancelled by RabbitMQ in some situations:
-
- * When a consumer is cancelled via the RabbitMQ Management UI
- * When the queue from which messages are consumed is deleted
-
-To handle these *consumer cancellation notification* events, consumers have a *cancellation handler* (see the `handle_cancellation` method in the example below).
-
-
-### Registering Consumer Instances
-
-To register a consumer and start consuming messages, pass a consumer object to the `Bunny::Queue#subscribe_with` method. Here is a full example:
-
-```ruby
-require 'bunny'
-
-# Define consumer subclass
-class ExampleConsumer < Bunny::Consumer 
-  def cancelled?
-    @cancelled
-  end
-
-  def handle_cancellation(_)
-    @cancelled = true
-  end
-end
-
-connection = Bunny.new
-connection.start
-
-consumer = nil
-
-ch1 = connection.create_channel
-
-t = Thread.new do
-  ch2 = connection.create_channel
-  q = ch2.queue("testq")
-
-  consumer = ExampleConsumer.new(ch2, q)
-  
-  # Pass block to consumer delivery handler
-  consumer.on_delivery() do |delivery_info, metadata, payload|
-    puts payload
-  end
-  
-  # Register the consumer
-  q.subscribe_with(consumer)
-end
-t.abort_on_exception = true
-
-sleep 0.5
-
-x = ch1.default_exchange
-
-# Publish messages
-x.publish('Hello', :routing_key => "testq")
-x.publish('World', :routing_key => "testq")
-
-sleep 0.5
-
-# Delete the queue triggering the consumer cancellation handler
-ch1.queue("testq").delete
-
-sleep 0.5
-
-puts 'Consumer has been cancelled' if consumer.cancelled?
-
-sleep 2
-connection.close
-```
-
-As with the `Bunny::Queue#subscribe` method, the `Bunny::Queue#subscribe_with` method can take a `:block` argument to block the calling thread:
-
-```ruby
-q.subscribe_with(consumer, :block => true)
-```
 
 ### Exclusive Consumers
 
@@ -577,37 +434,19 @@ Consumers can request exclusive access to the queue (meaning only this consumer 
 to be temporarily accessible by just one application (or thread, or process). If the application employing the exclusive consumer crashes or loses the
 TCP connection to the broker, then the channel is closed and the exclusive consumer is cancelled.
 
-To exclusively receive messages from the queue, pass the `:exclusive` option to `Bunny::Queue#subscribe`:
+To exclusively receive messages from the queue, pass the `:exclusive` option to `HotBunnies::Queue#subscribe`:
 
 ``` ruby
 q = ch.queue("")
-q.subscribe(:block => true, :ack => true, :exclusive => true) do |delivery_info, properties, payload|
+q.subscribe(:block => true, :ack => true, :exclusive => true) do |metadata, payload|
   # ...
 end
-```
-
-or the positional `exclusive` parameter to your `Bunny::Consumer` subclass:
-
-``` ruby
-class ExampleConsumer < Bunny::Consumer
-  def cancelled?
-    @cancelled
-  end
-
-  def handle_cancellation(_)
-    @cancelled = true
-  end
-end
-
-# channel, queue, consumer tag, no_ack, exclusive
-consumer = ExampleConsumer.new(ch, q, "", false, true)
-q.subscribe_with(consumer)
 ```
 
 Attempts to register another consumer on a queue that already has an exclusive consumer will
 result in a channel-level exception with reply code `403 (ACCESS_REFUSED)` and a reply message similar to this: 
 
-    ACCESS_REFUSED - queue 'queue name' in vhost '/' in exclusive use (Bunny::AccessRefused)
+    ACCESS_REFUSED - queue 'queue name' in vhost '/' in exclusive use (HotBunnies::AccessRefused)
 
 It is not possible to register an exclusive consumer on a queue that already has consumers.
 
@@ -621,18 +460,17 @@ guide). If prefetch values are equal for all consumers, each consumer will get a
 
 ### Cancelling a Consumer
 
-Sometimes there may be a requirement to cancel a consumer directly without deleting the queue that it is subscribed to. In AMQP 0.9.1 parlance, "cancelling a consumer" is often referred to as "unsubscribing". The `Bunny::Consumer#cancel` method can be used to do this. Here is a usage example :
+Sometimes there may be a requirement to cancel a consumer directly without deleting the queue that it is subscribed to. In AMQP 0.9.1 parlance, "cancelling a consumer" is often referred to as "unsubscribing". The `HotBunnies::Consumer#cancel` method can be used to do this. Here is a usage example :
 
 ``` ruby
-require 'bunny'
+require 'hot_bunnies'
 
-connection = Bunny.new
-connection.start
-
+connection = HotBunnies.connect
 ch         = connection.create_channel
+
 q          = ch.queue("", :auto_delete => true, :durable => false)
 
-consumer   = q.subscribe(:block => false) do |_, _, payload|
+consumer   = q.subscribe do |_, payload|
   puts payload
 end
 
@@ -648,7 +486,7 @@ puts "Consumer: #{cancel_ok.consumer_tag} cancelled"
 ch.close
 ```
 
-In the above example, you can see that the `Bunny::Consumer#cancel` method returns a *cancel_ok* reply from RabbitMQ which contains the consumer tag of the cancelled consumer.
+In the above example, you can see that the `HotBunnies::Consumer#cancel` method returns a *cancel_ok* reply from RabbitMQ which contains the consumer tag of the cancelled consumer.
 
 Once a consumer is cancelled, messages will
 no longer be delivered to it, however, due to the asynchronous nature of the protocol, it is possible for "in flight" messages to be received
@@ -674,11 +512,11 @@ processing and storing it into some persistent data store).
 If a consumer dies without sending an acknowledgement, the AMQP broker will redeliver it to another consumer, or, if none are available at the time,
 the broker will wait until at least one consumer is registered for the same queue before attempting redelivery.
 
-The acknowledgement model is chosen when a new consumer is registered for a queue. By default, `Bunny::Queue#subscribe` will use the *automatic* model.
+The acknowledgement model is chosen when a new consumer is registered for a queue. By default, `HotBunnies::Queue#subscribe` will use the *automatic* model.
 To switch to the *explicit* model, the `:ack` option should be used:
 
 ``` ruby
-q = ch.queue("", :exclusive => true).subscribe(:ack => true) do |delivery_info, properties, payload|
+q = ch.queue("", :exclusive => true).subscribe(:ack => true) do |metadata, payload|
   # ...
 end
 ```
@@ -686,53 +524,55 @@ end
 To demonstrate how redelivery works, let us have a look at the following code example:
 
 ``` ruby
-require "bunny"
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require "rubygems"
+require "hot_bunnies"
 
 puts "=> Subscribing for messages using explicit acknowledgements model"
 puts
 
-connection1 = Bunny.new
-connection1.start
-
-connection2 = Bunny.new
-connection2.start
-
-connection3 = Bunny.new
-connection3.start
+connection1 = HotBunnies.connect
+connection2 = HotBunnies.connect
+connection3 = HotBunnies.connect
 
 ch1 = connection1.create_channel
+ch1.prefetch = 1
 
 ch2 = connection2.create_channel
+ch2.prefetch = 1
 
 ch3 = connection3.create_channel
+ch3.prefetch = 1
 
-x   = ch3.direct("amq.direct")
-q1  = ch1.queue("bunny.examples.acknowledgements.explicit", :auto_delete => false)
+x   = ch3.fanout("amq.fanout")
+q1  = ch1.queue("hot_bunnies.examples.acknowledgements.explicit", :auto_delete => false)
 q1.purge
 
-q1.bind(x).subscribe(:ack => true, :block => false) do |delivery_info, properties, payload|
+q1.bind(x).subscribe(:manual_ack => true) do |metadata, payload|
   # do some work
   sleep(0.2)
 
   # acknowledge some messages, they will be removed from the queue
   if rand > 0.5
-    # FYI: there is a shortcut, Bunny::Channel.ack
-    ch1.acknowledge(delivery_info.delivery_tag, false)
-    puts "[consumer1] Got message ##{properties.headers['i']}, redelivered?: #{delivery_info.redelivered?}, ack-ed"
+    # FYI: there is a shortcut, HotBunnies::Channel.ack
+    ch1.acknowledge(metadata.delivery_tag, false)
+    puts "[consumer1] Got message ##{metadata.headers['i']}, redelivered?: #{metadata.redelivered?}, ack-ed"
   else
     # some messages are not ack-ed and will remain in the queue for redelivery
     # when app #1 connection is closed (either properly or due to a crash)
-    puts "[consumer1] Got message ##{properties.headers['i']}, SKIPPED"
+    puts "[consumer1] Got message ##{metadata.headers['i']}, SKIPPPED"
   end
 end
 
-q2   = ch2.queue("bunny.examples.acknowledgements.explicit", :auto_delete => false)
-q2.bind(x).subscribe(:ack => true, :block => false) do |delivery_info, properties, payload|
+q2   = ch2.queue("hot_bunnies.examples.acknowledgements.explicit", :auto_delete => false)
+q2.bind(x).subscribe(:manual_ack => true) do |metadata, payload|
   # do some work
   sleep(0.2)
 
-  ch2.acknowledge(delivery_info.delivery_tag, false)
-  puts "[consumer2] Got message ##{properties.headers['i']}, redelivered?: #{delivery_info.redelivered?}, ack-ed"
+  ch2.acknowledge(metadata.delivery_tag, false)
+  puts "[consumer2] Got message ##{metadata.headers['i']}, redelivered?: #{metadata.redelivered?}, ack-ed"
 end
 
 t1 = Thread.new do
@@ -740,7 +580,9 @@ t1 = Thread.new do
   loop do
     sleep 0.5
 
-    x.publish("Message ##{i}", :headers => { :i => i })
+    x.publish("Message ##{i}", :properties => {
+                :headers => { "i" => i }
+              })
     i += 1
   end
 end
@@ -749,13 +591,13 @@ t1.abort_on_exception = true
 t2 = Thread.new do
   sleep 4.0
 
-  connection1.close
   puts "----- Connection 1 is now closed (we pretend that it has crashed) -----"
+  connection1.close
 end
 t2.abort_on_exception = true
 
 
-sleep 10.0
+sleep 7.0
 connection2.close
 connection3.close
 ```
@@ -811,14 +653,14 @@ and then, once consumer #1 had "crashed", the messages were immediately redelive
 [consumer2] Got message #6, redelivered?: true, ack-ed
 ```
 
-To acknowledge a message use `Bunny::Channel#acknowledge`:
+To acknowledge a message use `HotBunnies::Channel#acknowledge`:
 
 ```
-# FYI: there is a shortcut, Bunny::Channel.ack
-ch1.acknowledge(delivery_info.delivery_tag, false)
+# FYI: there is a shortcut, HotBunnies::Channel.ack
+ch1.acknowledge(metadata.delivery_tag, false)
 ```
 
-`Bunny::Channel#acknowledge` takes two arguments: a message *delivery tag* and a flag that indicates whether or not we want to acknowledge multiple messages at once.
+`HotBunnies::Channel#acknowledge` takes two arguments: a message *delivery tag* and a flag that indicates whether or not we want to acknowledge multiple messages at once.
 Delivery tag is simply a channel-specific increasing number that the server uses to identify deliveries.
 
 When acknowledging multiple messages at once, the delivery tag is treated as "up to and including". For example, if delivery tag = 5 that would mean "acknowledge messages 1, 2, 3, 4 and 5".
@@ -836,17 +678,17 @@ being raised. The reply text will be similar to this:
 When a consumer application receives a message, processing of that message may or may not succeed. An application can indicate to the broker that message
 processing has failed (or cannot be accomplished at the time) by rejecting a message. When rejecting a message, an application can ask the broker to discard or requeue it.
 
-To reject a message use the `Bunny::Channel#reject` method:
+To reject a message use the `HotBunnies::Channel#reject` method:
 
 ``` ruby
-ch1.reject(delivery_info.delivery_tag)
+ch1.reject(metadata.delivery_tag)
 ```
 
 in the example above, messages are rejected without requeueing (broker will simply discard them). To requeue a rejected message, use the second argument
-that `Bunny::Queue#reject` takes:
+that `HotBunnies::Queue#reject` takes:
 
 ``` ruby
-ch1.reject(delivery_info.delivery_tag, true)
+ch1.reject(metadata.delivery_tag, true)
 ```
 
 ### Negative acknowledgements
@@ -874,11 +716,11 @@ that the AMQP broker has to hold in memory at once, applications can be designed
 receives 5000 messages and then acknowledges them all at once. The broker will not send message 5001 unless it receives an acknowledgement.
 
 In AMQP parlance this is known as *QoS* or *message prefetching*. Prefetching is configured on a per-channel basis.
-To configure prefetching use the `Bunny::Channel#prefetch` method like so:
+To configure prefetching use the `HotBunnies::Channel#prefetch` method like so:
 
 ``` ruby
 ch1 = connection1.create_channel
-ch1.prefetch(10)
+ch1.prefetch = 10
 ```
 
 **Note** that the prefetch setting is ignored for consumers that do not use explicit acknowledgements.
@@ -915,20 +757,18 @@ Publisher Confirms RabbitMQ extension.
 ## Fetching messages when needed ("pull API")
 
 The AMQP 0.9.1 specification also provides a way for applications to fetch (pull) messages from the queue only when necessary.
-For that, use the `Bunny::Queue#pop` function which returns a triple of `[delivery_info, properties, payload]`:
+For that, use the `HotBunnies::Queue#pop` function which returns a triple of `[metadata, payload]`:
 
 ``` ruby
-delivery_info, properties, payload = q.pop
+metadata, payload = q.pop
 ```
 
 The same example in context:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
-
+conn  = HotBunnies.connect
 chann = conn.create_channel
 
 q = chann.queue("test1")
@@ -937,25 +777,21 @@ exch = chann.default_exchange
 
 exch.publish("Hello, everybody!", :routing_key => 'test1')
 
-delivery_info, properties, payload = q.pop
+metadata, payload = q.pop
 
 puts "This is the message: " + payload + "\n\n"
 
 conn.close
 ```
 
-The message properties are the same as those provided for delivery handlers (see the "Push API" section above).
+The message metadata are the same as those provided for delivery handlers (see the "Push API" section above).
 
-If the queue is empty, then `[nil, nil, nil]` will be returned.
-
-There is another method, `Bunny::Queue#pop_as_hash`, that returns the message attributes as a hash -
-
-`{:header => properties, :payload => content, :delivery_details => delivery_info}`
+If the queue is empty, then `[nil, nil]` will be returned.
 
 
 ## Unbinding Queues From Exchanges
 
-To unbind a queue from an exchange use the `Bunny::Queue#unbind` function:
+To unbind a queue from an exchange use the `HotBunnies::Queue#unbind` function:
 
 ``` ruby
 q.unbind(x)
@@ -969,18 +805,16 @@ result in a channel-level exception.
 It is possible to query the number of messages in a queue and the number of consumers it has by declaring the queue
 with the `:passive` attribute set.
 The response (`queue.declare-ok` AMQP method) will include the number of messages along with
-the number of consumers. However, Bunny provides a convenience method, `Bunny::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
+the number of consumers. However, Bunny provides a convenience method, `HotBunnies::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
 
- * `Bunny::Queue#message_count`
- * `Bunny::Queue#consumer_count`
+ * `HotBunnies::Queue#message_count`
+ * `HotBunnies::Queue#consumer_count`
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
-
-ch = conn.channel
+conn = HotBunnies.connect
+ch   = conn.channel
 
 q = ch.queue("testq")
 
@@ -995,15 +829,13 @@ puts q.consumer_count
 
 ## Purging queues
 
-It is possible to purge a queue (remove all of the messages from it) using the `Bunny::Queue#purge` method:
+It is possible to purge a queue (remove all of the messages from it) using the `HotBunnies::Queue#purge` method:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
-
-ch = conn.channel
+conn = HotBunnies.connect
+ch   = conn.channel
 
 q = ch.queue("")
 
@@ -1024,15 +856,13 @@ If the *exclusive* flag is set to true then the queue will be deleted when the c
 
 If the *auto_delete* flag is set to true then the queue will be deleted when there are no more consumers subscribed to it. The queue will remain in existence until at least one consumer accesses it.
 
-To delete a queue directly, use the `Bunny::Queue#delete` method:
+To delete a queue directly, use the `HotBunnies::Queue#delete` method:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
-
-ch = conn.channel
+conn = HotBunnies.connect
+ch   = conn.channel
 
 q = ch.queue("")
 
@@ -1060,11 +890,11 @@ as needed. Consumers are identified by consumer tags.
 
 For messages to be routed to queues, queues need to be bound to exchanges.
 
-Most methods related to queues are found in three Bunny namespaces:
+Most methods related to queues are found in three HotBunnies namespaces:
 
- * `Bunny::Channel`
- * `Bunny::Consumer`
- * `Bunny::Queue`
+ * `HotBunnies::Channel`
+ * `HotBunnies::Queue`
+ * `HotBunnies::Consumer`
 
 
 ## What to Read Next
@@ -1084,6 +914,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Bunny mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
