@@ -1,25 +1,25 @@
 ---
-title: "Working with RabbitMQ exchanges and publishing messages from Ruby with Bunny"
+title: "Working with RabbitMQ exchanges and publishing messages from Ruby with HotBunnies"
 layout: article
 ---
 
 ## About this guide
 
-This guide covers the use of exchanges according to the AMQP 0.9.1 specification, including broader topics
-related to message publishing, common usage scenarios and how to accomplish typical operations using Bunny.
+This guide covers multiple topics related to RabbitMQ exchanges and message publishing,
+including common usage scenarios and how to accomplish typical operations using Hot Bunnies.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubybunny.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
 
 
-## What version of Bunny does this guide cover?
+## What version of Hot Bunnies does this guide cover??
 
-This guide covers Bunny 0.9.0.
+This guide covers Hot Bunnies 2.0.
 
 
-## Exchanges in AMQP 0.9.1 — Overview
+## RabbitMQ Exchanges — Overview
 
-### What are AMQP exchanges?
+### What are RabbitMQ exchanges?
 
 An *exchange* accepts messages from a producer application and routes them to message queues. They can be thought of as the
 "mailboxes" of the AMQP world. Unlike some other messaging middleware products and protocols, in AMQP, messages are *not* published directly to queues.
@@ -46,7 +46,7 @@ Exchanges have several attributes associated with them:
 
 ## Exchange types
 
-There are four built-in exchange types in AMQP v0.9.1:
+There are four built-in exchange types in RabbitMQ:
 
  * Direct
  * Fanout
@@ -59,10 +59,10 @@ begin with "x-", much like custom HTTP headers, e.g. [x-consistent-hash exchange
 ## Message attributes
 
 Before we start looking at various exchange types and their routing semantics, we need to introduce message attributes. Every AMQP message has a number
-of *attributes*. Some attributes are important and used very often, others are rarely used. AMQP message attributes are metadata
+of *attributes*. Some attributes are important and used very often, others are rarely used. Message attributes are metadata
 and are similar in purpose to HTTP request and response headers.
 
-Every AMQP 0.9.1 message has an attribute called *routing key*. The routing key is an "address" that the exchange may use to decide
+Every message has an attribute called *routing key*. The routing key is an "address" that the exchange may use to decide
 how to route the message . This is similar to, but more generic than, a URL in HTTP. Most exchange types use the routing key to implement routing logic,
 but some ignore it and use other criteria (e.g. message content).
 
@@ -83,29 +83,27 @@ Graphically this can be represented as:
 
 There are two ways to declare a fanout exchange:
 
- * Using the `Bunny::Channel#fanout` method
- * Instantiate `Bunny::Exchange` directly
+ * Using the `HotBunnies::Channel#fanout` method
+ * Instantiate `HotBunnies::Exchange` directly
 
 Here are two examples to demonstrate:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("activity.events")
 ```
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
-x    = Bunny::Exchange.new(ch, :fanout, "activity.events")
+x    = HotBunnies::Exchange.new(ch,  "activity.events", :type => :fanout)
 ```
 
 ### Fanout routing example
@@ -118,20 +116,19 @@ publish a message to the exchange:
 # encoding: utf-8
 
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
 puts "=> Fanout exchange routing"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("examples.pings")
 
 10.times do |i|
   q = ch.queue("", :auto_delete => true).bind(x)
-  q.subscribe do |delivery_info, properties, payload|
+  q.subscribe do |metadata, payload|
     puts "[consumer] #{q.name} received a message: #{payload}"
   end
 end
@@ -201,29 +198,27 @@ Here is a graphical representation:
 
 ### Declaring a direct exchange
 
- * Using the `Bunny::Channel#direct` method
- * Instantiate `Bunny::Exchange` directly
+ * Using the `HotBunnies::Channel#direct` method
+ * Instantiate `HotBunnies::Exchange` directly
 
 Here are two examples to demonstrate:
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.direct("imaging")
 ```
 
 ``` ruby
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
-x    = Bunny::Exchange.new(ch, :direct, "imaging")
+x    = HotBunnies::Exchange.new(ch, "imaging", :type => :direct)
 ```
 
 
@@ -236,23 +231,22 @@ Since direct exchanges use the *message routing key* for routing, message produc
 # encoding: utf-8
 
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
 puts "=> Direct exchange routing"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.direct("examples.imaging")
 
 q1 = ch.queue("", :auto_delete => true).bind(x, :routing_key => "resize")
-q1.subscribe do |delivery_info, properties, payload|
+q1.subscribe do |metadata, payload|
   puts "[consumer] #{q1.name} received a 'resize' message"
 end
 q2 = ch.queue("", :auto_delete => true).bind(x, :routing_key => "watermark")
-q2.subscribe do |delivery_info, properties, payload|
+q2.subscribe do |metadata, payload|
   puts "[consumer] #{q2.name} received a 'watermark' message"
 end
 
@@ -296,7 +290,7 @@ The [Queues and Consumers](/articles/queues.html) guide provides more informatio
 AMQP 0.9.1 brokers must implement a direct exchange type and pre-declare two instances:
 
  * `amq.direct`
- * *""* exchange known as *default exchange* (unnamed, referred to as an empty string by many clients including Bunny)
+ * *""* exchange known as *default exchange* (unnamed, referred to as an empty string by many clients including Hot Bunnies)
 
 Applications can rely on those exchanges always being available to them. Each vhost has separate instances of those
 exchanges, they are *not shared across vhosts* for obvious reasons.
@@ -304,7 +298,7 @@ exchanges, they are *not shared across vhosts* for obvious reasons.
 
 ### Default exchange
 
-The default exchange is a direct exchange with no name (Bunny refers to it using an empty string) pre-declared by the broker. It has one special
+The default exchange is a direct exchange with no name (Hot Bunnies refers to it using an empty string) pre-declared by the broker. It has one special
 property that makes it very useful for simple applications, namely that *every queue is automatically bound to it with a routing key which is the same as the queue name*.
 
 For example, when you declare a queue with the name of "search.indexing.online", RabbitMQ will bind it to the default exchange using "search.indexing.online"
@@ -318,15 +312,14 @@ The default exchange is used by the "Hello, World" example:
 # encoding: utf-8
 
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
+ch   = conn.create_channel
 
-ch = conn.create_channel
-q  = ch.queue("bunny.examples.hello_world", :auto_delete => true)
+q    = ch.queue("hot_bunnies.examples.hello_world", :auto_delete => true)
 
-q.subscribe do |delivery_info, properties, payload|
+q.subscribe do |metadata, payload|
   puts "Received #{payload}"
 end
 
@@ -365,18 +358,18 @@ more efficient for this use case.
 
 Two classic examples of topic-based routing are stock price updates and location-specific data (for instance, weather broadcasts). Consumers indicate which
 topics they are interested in (think of it like subscribing to a feed for an individual tag of your favourite blog as opposed to the full feed). The routing is enabled
-by specifying a *routing pattern* to the `Bunny::Queue#bind` method, for example:
+by specifying a *routing pattern* to the `HotBunnies::Queue#bind` method, for example:
 
 ``` ruby
 x    = ch.topic("weathr", :auto_delete => true)
 
 q = ch.queue("americas.south", :auto_delete => true).bind(x, :routing_key => "americas.south.#")
-q.subscribe do |delivery_info, properties, payload|
+q.subscribe do |metadata, payload|
   puts "An update for South America: #{payload}, routing key is #{delivery_info.routing_key}"
 end
 ```
 
-In the example above we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `Bunny::Queue#bind` method. This means that
+In the example above we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `HotBunnies::Queue#bind` method. This means that
 only messages with a routing key matching "americas.south.#" will be routed to the "americas.south" queue.
 
 A routing pattern consists of several words separated by dots, in a similar way to URI path segments being joined by slash. A few of examples:
@@ -416,45 +409,44 @@ Full example:
 # encoding: utf-8
 
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
-connection = Bunny.new
-connection.start
+connection = HotBunnies.connect
 
-channel  = connection.create_channel
+ch  = connection.create_channel
 # topic exchange name can be any string
-exchange = channel.topic("weathr", :auto_delete => true)
+x   = ch.topic("weathr", :auto_delete => true)
 
 # Subscribers.
-channel.queue("americas.north").bind(exchange, :routing_key => "americas.north.#").subscribe do |delivery_info, properties, payload|
-  puts "An update for North America: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("", :exclusive => true).bind(x, :routing_key => "americas.north.#").subscribe do |metadata, payload|
+  puts "An update for North America: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |delivery_info, properties, payload|
-  puts "An update for South America: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("americas.south").bind(x, :routing_key => "americas.south.#").subscribe do |metadata, payload|
+  puts "An update for South America: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("us.california").bind(exchange, :routing_key => "americas.north.us.ca.*").subscribe do |delivery_info, properties, payload|
-  puts "An update for US/California: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("us.california").bind(x, :routing_key => "americas.north.us.ca.*").subscribe do |metadata, payload|
+  puts "An update for US/California: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("us.tx.austin").bind(exchange, :routing_key => "#.tx.austin").subscribe do |delivery_info, properties, payload|
-  puts "An update for Austin, TX: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("us.tx.austin").bind(x, :routing_key => "#.tx.austin").subscribe do |metadata, payload|
+  puts "An update for Austin, TX: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("it.rome").bind(exchange, :routing_key => "europe.italy.rome").subscribe do |delivery_info, properties, payload|
-  puts "An update for Rome, Italy: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("it.rome").bind(x, :routing_key => "europe.italy.rome").subscribe do |metadata, payload|
+  puts "An update for Rome, Italy: #{payload}, routing key is #{metadata.routing_key}"
 end
-channel.queue("asia.hk").bind(exchange, :routing_key => "asia.southeast.hk.#").subscribe do |delivery_info, properties, payload|
-  puts "An update for Hong Kong: #{payload}, routing key is #{delivery_info.routing_key}"
+ch.queue("asia.hk").bind(x, :routing_key => "asia.southeast.hk.#").subscribe do |metadata, payload|
+  puts "An update for Hong Kong: #{payload}, routing key is #{metadata.routing_key}"
 end
 
-exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego").
-  publish("Berkeley update",         :routing_key => "americas.north.us.ca.berkeley").
-  publish("San Francisco update",    :routing_key => "americas.north.us.ca.sanfrancisco").
-  publish("New York update",         :routing_key => "americas.north.us.ny.newyork").
-  publish("São Paolo update",        :routing_key => "americas.south.brazil.saopaolo").
-  publish("Hong Kong update",        :routing_key => "asia.southeast.hk.hongkong").
-  publish("Kyoto update",            :routing_key => "asia.southeast.japan.kyoto").
-  publish("Shanghai update",         :routing_key => "asia.southeast.prc.shanghai").
-  publish("Rome update",             :routing_key => "europe.italy.roma").
-  publish("Paris update",            :routing_key => "europe.france.paris")
+x.publish("San Diego update",     :routing_key => "americas.north.us.ca.sandiego")
+x.publish("Berkeley update",      :routing_key => "americas.north.us.ca.berkeley")
+x.publish("San Francisco update", :routing_key => "americas.north.us.ca.sanfrancisco")
+x.publish("New York update",      :routing_key => "americas.north.us.ny.newyork")
+x.publish("São Paolo update",     :routing_key => "americas.south.brazil.saopaolo")
+x.publish("Hong Kong update",     :routing_key => "asia.southeast.hk.hongkong")
+x.publish("Kyoto update",         :routing_key => "asia.southeast.japan.kyoto")
+x.publish("Shanghai update",      :routing_key => "asia.southeast.prc.shanghai")
+x.publish("Rome update",          :routing_key => "europe.italy.roma")
+x.publish("Paris update",         :routing_key => "europe.france.paris")
 
 sleep 1.0
 
@@ -476,26 +468,26 @@ they want to receive, the use of topic exchanges should be considered. To name a
 
 ## Declaring/Instantiating Exchanges
 
-With Bunny, exchanges can be declared in two ways: by instantiating `Bunny::Exchange` or by using a number of convenience methods on `Bunny::Channel`:
+With Hot Bunnies, exchanges can be declared in two ways: by instantiating `HotBunnies::Exchange` or by using a number of convenience methods on `HotBunnies::Channel`:
 
-  * `Bunny::Channel#default_exchange`
-  * `Bunny::Channel#direct`
-  * `Bunny::Channel#topic`
-  * `Bunny::Channel#fanout`
-  * `Bunny::Channel#headers`
+  * `HotBunnies::Channel#default_exchange`
+  * `HotBunnies::Channel#direct`
+  * `HotBunnies::Channel#topic`
+  * `HotBunnies::Channel#fanout`
+  * `HotBunnies::Channel#headers`
 
 The previous sections on specific exchange types (direct, fanout, headers, etc.) provide plenty of examples of how these methods can be used.
 
 ## Publishing messages
 
-To publish a message to an exchange, use `Bunny::Exchange#publish`:
+To publish a message to an exchange, use `HotBunnies::Exchange#publish`:
 
 ``` ruby
 x.publish("some data")
 ```
 
 The method accepts message body and a number of message and delivery metadata options. Routing key can be blank (`""`) but never `nil`.
-The body needs to be a string. The message payload is completely opaque to the library and is not modified by Bunny or RabbitMQ in any way.
+The body needs to be a string. The message payload is completely opaque to the library and is not modified by Hot Bunnies or RabbitMQ in any way.
 
 ### Data serialization
 
@@ -514,7 +506,8 @@ A few popular options for data serialization are:
 ### Message metadata
 
 AMQP messages have various metadata attributes that can be set when a message is published. Some of the attributes are well-known and mentioned in the AMQP 0.9.1 specification,
-others are specific to a particular application. Well-known attributes are listed here as options that `Bunny::Exchange#publish` takes:
+others are specific to a particular application. Well-known attributes are listed here as options that `HotBunnies::Exchange#publish` takes
+nested in `:properties`:
 
  * `:persistent`
  * `:mandatory`
@@ -530,7 +523,7 @@ others are specific to a particular application. Well-known attributes are liste
  * `:user_id`
  * `:app_id`
 
-All other attributes can be added to a *headers table* (in Ruby, a hash) that `Bunny::Exchange#publish` accepts as the `:headers` option.
+All other attributes can be added to a *headers table* (in Ruby, a hash) that `HotBunnies::Exchange#publish` accepts as the `:headers` option.
 
 An example:
 
@@ -538,32 +531,35 @@ An example:
 now = Time.now
 
 x.publish("hello",
-          :routing_key => queue_name,
-          :app_id      => "bunny.example",
-          :priority    => 8,
-          :type        => "kinda.checkin",
-          # headers table keys can be anything
-          :headers     => {
-            :coordinates => {
-              :latitude  => 59.35,
-              :longitude => 18.066667
+          :routing_key => "#{q.name}",
+          :properties => {
+            :app_id       => "hot_bunnies.example",
+            :priority     => 8,
+            :content_type => "application/octet-stream"
+            :type         => "kinda.checkin",
+            # headers table keys can be anything
+            :headers     => {
+              :coordinates => {
+                :latitude  => 59.35,
+                :longitude => 18.066667
+              },
+              :time         => Time.now,
+              :participants => 11,
+              :venue        => "Stockholm",
+              :true_field   => true,
+              :false_field  => false,
+              :nil_field    => nil,
+              :ary_field    => ["one", 2.0, 3, [{"abc" => 123}]]
             },
-            :time         => now,
-            :participants => 11,
-            :venue        => "Stockholm",
-            :true_field   => true,
-            :false_field  => false,
-            :nil_field    => nil,
-            :ary_field    => ["one", 2.0, 3, [{"abc" => 123}]]
-          },
-          :timestamp      => now.to_i,
-          :reply_to       => "a.sender",
-          :correlation_id => "r-1",
-          :message_id     => "m-1")
+            :timestamp      => Time.now.to_i,
+            :reply_to       => "a.sender",
+            :correlation_id => "r-1",
+            :message_id     => "m-1"
+          })
 ```
 
 <dl>
-  <dt>:routing-key</dt>
+  <dt>:routing_key</dt>
   <dd>Used for routing messages depending on the exchange type and configuration.</dd>
 
   <dt>:persistent</dt>
@@ -575,28 +571,28 @@ x.publish("hello",
   to the producer with a `basic.return` AMQP method. If this flag is set to false, the server silently drops the message.
   </dd>
 
-  <dt>:content-type</dt>
+  <dt>:content_type</dt>
   <dd>MIME content type of message payload. Has the same purpose/semantics as HTTP Content-Type header.</dd>
 
-  <dt>:content-encoding</dt>
+  <dt>:content_encoding</dt>
   <dd>MIME content encoding of message payload. Has the same purpose/semantics as HTTP Content-Encoding header.</dd>
 
   <dt>:priority</dt>
   <dd>Message priority, from 0 to 9.</dd>
 
-  <dt>:message-id</dt>
+  <dt>:message_id</dt>
   <dd>
     Message identifier as a string. If applications need to identify messages, it is recommended that they use this attribute instead of putting it
     into the message payload.
   </dd>
 
-  <dt>:reply-to</dt>
+  <dt>:reply_to</dt>
   <dd>
     Commonly used to name a reply queue (or any other identifier that helps a consumer application to direct its response).
     Applications are encouraged to use this attribute instead of putting this information into the message payload.
   </dd>
 
-  <dt>:correlation-id</dt>
+  <dt>:correlation_id</dt>
   <dd>
     ID of the message that this message is a reply to. Applications are encouraged to use this attribute instead of putting this information
     into the message payload.
@@ -605,12 +601,12 @@ x.publish("hello",
   <dt>:type</dt>
   <dd>Message type as a string. Recommended to be used by applications instead of including this information into the message payload.</dd>
 
-  <dt>:user-id</dt>
+  <dt>:user_id</dt>
   <dd>
-  Sender's identifier. Note that RabbitMQ will check that the [value of this attribute is the same as username AMQP connection was authenticated with](http://www.rabbitmq.com/extensions.html#validated-user-id), it SHOULD NOT be used to transfer, for example, other application user ids or be used as a basis for some kind of Single Sign-On solution.
+  Sender's identifier. Note that RabbitMQ will check that the [value of this attribute is the same as username AMQP connection was authenticated with](http://www.rabbitmq.com/validated-user-id.html), it SHOULD NOT be used to transfer, for example, other application user ids or be used as a basis for some kind of Single Sign-On solution.
   </dd>
 
-  <dt>:app-id</dt>
+  <dt>:app_id</dt>
   <dd>Application identifier string, for example, "eventoverse" or "webcrawler"</dd>
 
   <dt>:timestamp</dt>
@@ -639,9 +635,9 @@ identity is not validated and remains private.
 
 A commonly asked question about RabbitMQ clients is "how to execute a piece of code after a message is received".
 
-Message publishing with Bunny happens in several steps:
+Message publishing with Hot Bunnies happens in several steps:
 
- * `Bunny::Exchange#publish` takes a payload and various metadata attributes
+ * `HotBunnies::Exchange#publish` takes a payload and various metadata attributes
  * Resulting payload is staged for writing
  * On the next event loop tick, data is transferred to the OS kernel using one of the underlying NIO APIs
  * OS kernel buffers data before sending it
@@ -652,7 +648,7 @@ As you can see, "when data is sent" is a complicated issue and while methods to 
 was received by the broker because it might have crashed while data was travelling down the wire.
 
 The only way to reliably know whether data was received by the broker or a peer application is to use message acknowledgements. This is how TCP works and this
-approach is proven to work at the enormous scale of the modern Internet. AMQP 0.9.1 fully embraces this fact and Bunny follows.
+approach is proven to work at the enormous scale of the modern Internet. AMQP 0.9.1 fully embraces this fact and Hot Bunnies follows.
 </div>
 
 In cases when you cannot afford to lose a single message, AMQP 0.9.1 applications can use one (or a combination of) the following protocol features:
@@ -662,7 +658,7 @@ In cases when you cannot afford to lose a single message, AMQP 0.9.1 application
  * Transactions (these introduce noticeable overhead and have a relatively narrow set of use cases)
 
 A more detailed overview of the pros and cons of each option can be found in a [blog post that introduces Publisher Confirms extension](http://bit.ly/rabbitmq-publisher-confirms)
-by the RabbitMQ team. The next sections of this guide will describe how the features above can be used with Bunny.
+by the RabbitMQ team. The next sections of this guide will describe how the features above can be used with Hot Bunnies.
 
 
 ### Publishing messages as mandatory
@@ -677,30 +673,29 @@ The following code example demonstrates a message that is published as mandatory
 # encoding: utf-8
 
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
 puts "=> Publishing messages as mandatory"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.default_exchange
 
-x.on_return do |return_info, properties, content|
-  puts "Got a returned message: #{content}"
+ch.on_return do |reply_code, reply_text, exchange, routing_key, basic_properties, payload|
+  puts "Got a returned message: #{payload}, reply: #{reply_code} #{reply_text}"
 end
 
 q = ch.queue("", :exclusive => true)
-q.subscribe do |delivery_info, properties, content|
-  puts "Consumed a message: #{content}"
+q.subscribe do |metadata, payload|
+  puts "Consumed a message: #{payload}"
 end
 
 x.publish("This will NOT be returned", :mandatory => true, :routing_key => q.name)
 x.publish("This will be returned", :mandatory => true, :routing_key => "akjhdfkjsh#{rand}")
 
-sleep 0.5
+sleep 1.0
 puts "Disconnecting..."
 conn.close
 ```
@@ -714,38 +709,37 @@ When a message is returned, the application that produced it can handle that mes
  * Publish it to a different destination
  * Log the event and discard the message
 
-Returned messages contain information about the exchange they were published to. Bunny associates
-returned message callbacks with consumers. To handle returned messages, use `Bunny::Exchange#on_return`:
+Returned messages contain information about the exchange they were published to. Hot Bunnies associates
+returned message callbacks with consumers. To handle returned messages, use `HotBunnies::Exchange#on_return`:
 
 ``` ruby
 #!/usr/bin/env ruby
 # encoding: utf-8
 
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
 puts "=> Publishing messages as mandatory"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.default_exchange
 
-x.on_return do |return_info, properties, content|
-  puts "Got a returned message: #{content}"
+ch.on_return do |reply_code, reply_text, exchange, routing_key, basic_properties, payload|
+  puts "Got a returned message: #{payload}, reply: #{reply_code} #{reply_text}"
 end
 
 q = ch.queue("", :exclusive => true)
-q.subscribe do |delivery_info, properties, content|
-  puts "Consumed a message: #{content}"
+q.subscribe do |metadata, payload|
+  puts "Consumed a message: #{payload}"
 end
 
 x.publish("This will NOT be returned", :mandatory => true, :routing_key => q.name)
 x.publish("This will be returned", :mandatory => true, :routing_key => "akjhdfkjsh#{rand}")
 
-sleep 0.5
+sleep 1.0
 puts "Disconnecting..."
 conn.close
 ```
@@ -762,7 +756,7 @@ Messages potentially spend some time in the queues to which they were routed bef
 To survive it, messages must be persisted to disk. This has a negative effect on performance, especially with network attached storage like NAS devices and Amazon EBS.
 AMQP 0.9.1 lets applications trade off performance for durability, or vice versa, on a message-by-message basis.
 
-To publish a persistent message, use the `:persistent` option that `Bunny::Exchange#publish` accepts:
+To publish a persistent message, use the `:persistent` option that `HotBunnies::Exchange#publish` accepts:
 
 ``` ruby
 x.publish(data, :persistent => true)
@@ -775,7 +769,7 @@ x.publish(data, :persistent => true)
 ### Publishing In Multi-threaded Environments
 
 <div class="alert alert-error">
-When using Bunny in multi-threaded environments, the rule of thumb is: avoid sharing channels across threads.
+When using Hot Bunnies in multi-threaded environments, the rule of thumb is: avoid sharing channels across threads.
 </div>
 
 In other words, publishers in your application that publish from separate threads should use their own channels. The
@@ -820,13 +814,12 @@ that demonstrates headers routing:
 # encoding: utf-8
 
 require "rubygems"
-require "bunny"
+require "hot_bunnies"
 
-puts "=> Direct exchange routing"
+puts "=> Headers exchange routing"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.headers("headers")
@@ -872,13 +865,13 @@ When the `"x-match"` argument is set to `"any"`, just one matching header value 
 
 ### Declaring a Headers Exchange
 
-There are two ways to declare a headers exchange, either instantiate `Bunny::Exchange` directly:
+There are two ways to declare a headers exchange, either instantiate `HotBunnies::Exchange` directly:
 
 ``` ruby
-x = Bunny::Exchange.new(ch, :headers, "matching")
+x = HotBunnies::Exchange.new(ch, :headers, "matching")
 ```
 
-Or use the `Bunny::Channel#headers` method:
+Or use the `HotBunnies::Channel#headers` method:
 
 ``` ruby
 x = ch.headers("matching")
@@ -976,18 +969,18 @@ lightweight Publisher Confirms, a RabbitMQ-specific extension.
 
 ## Binding Queues to Exchanges
 
-Queues are bound to exchanges using `Bunny::Queue#bind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
+Queues are bound to exchanges using `HotBunnies::Queue#bind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
 
 
 ## Unbinding Queues from Exchanges
 
-Queues are unbound from exchanges using `Bunny::Queue#unbind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
+Queues are unbound from exchanges using `HotBunnies::Queue#unbind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
 
 ## Deleting Exchanges
 
 ### Explicitly Deleting an Exchange
 
-Exchanges are deleted using the `Bunny::Exchange#delete`:
+Exchanges are deleted using the `HotBunnies::Exchange#delete`:
 
 ``` ruby
 x = ch.topic("groups.013c6a65a1de9b15658446c6570ec39ff615ba15")
@@ -1018,10 +1011,10 @@ types.
 Messages have a set of standard properties (e.g. type, content type) and can carry an arbitrary map
 of headers.
 
-Most functions related to exchanges and publishing are found in two Bunny classes:
+Most functions related to exchanges and publishing are found in two Hot Bunnies classes:
 
- * `Bunny::Exchange`
- * `Bunny::Channel`
+ * `HotBunnies::Exchange`
+ * `HotBunnies::Channel`
 
 ## What to Read Next
 
@@ -1040,6 +1033,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Bunny mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
