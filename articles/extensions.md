@@ -5,7 +5,7 @@ layout: article
 
 ## About This Guide
 
-Bunny 0.9 supports all [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html):
+Hot Bunnies supports all [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html):
 
   * [Publisher confirms](http://www.rabbitmq.com/confirms.html)
   * [Negative acknowledgements](http://www.rabbitmq.com/nack.html) (basic.nack)
@@ -24,14 +24,14 @@ This guide briefly describes how to use these extensions with Bunny.
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 (including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubybunny.info).
 
-## What version of Bunny does this guide cover?
+## What version of Hot Bunnies does this guide cover??
 
-This guide covers Bunny 0.9.
+This guide covers Hot Bunnies 2.0.
 
 
 ## Enabling RabbitMQ Extensions
 
-You don't need to require any additional files to make Bunny 0.9 support RabbitMQ extensions.
+You don't need to require any additional files to make Hot Bunnies support RabbitMQ extensions.
 The support is built into the core.
 
 ## Per-queue Message Time-to-Live
@@ -39,9 +39,9 @@ The support is built into the core.
 Per-queue Message Time-to-Live (TTL) is a RabbitMQ extension to AMQP 0.9.1 that allows developers to control how long
 a message published to a queue can live before it is discarded.
 A message that has been in the queue for longer than the configured TTL is said to be dead. Dead messages will not be delivered
-to consumers and cannot be fetched using the *basic.get* operation (`Bunny::Queue#pop`).
+to consumers and cannot be fetched using the *basic.get* operation (`HotBunnies::Queue#pop`).
 
-Message TTL is specified using the *x-message-ttl* argument on declaration. With Bunny, you pass it to `Bunny::Queue#initialize` or `Bunny::Channel#queue`:
+Message TTL is specified using the *x-message-ttl* argument on declaration. With Bunny, you pass it to `HotBunnies::Queue#initialize` or `HotBunnies::Channel#queue`:
 
 ``` ruby
 # 1000 milliseconds
@@ -54,19 +54,19 @@ it has no effect on copies of the message in other queues.
 ### Example
 
 The example below sets the message TTL for a new server-named queue to be 1000 milliseconds. It then publishes several messages that are routed to the queue and tries
-to fetch messages using the *basic.get* AMQP 0.9.1 method ({% yard_link Bunny::Queue#pop %} after 0.7 and 1.5 seconds:
+to fetch messages using the *basic.get* AMQP 0.9.1 method ({% yard_link HotBunnies::Queue#pop %} after 0.7 and 1.5 seconds:
 
 ``` ruby
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require "bunny"
+require "rubygems"
+require "hot_bunnies"
 
-puts "=> Using per-queue message TTL"
+puts "=> Demonstrating per-queue message TTL"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
@@ -77,11 +77,11 @@ q    = ch.queue("", :exclusive => true, :arguments => {"x-message-ttl" => 1000})
 end
 
 sleep 0.7
-_, _, content1 = q.pop
+_, content1 = q.pop
 puts "Fetched #{content1.inspect} after 0.7 second"
 
 sleep 0.8
-_, _, content2 = q.pop
+_, content2 = q.pop
 msg = if content2
         content2.inspect
       else
@@ -111,17 +111,17 @@ a publisher and a RabbitMQ node instead of a consumer and a RabbitMQ node.
 
 ![RabbitMQ Publisher Confirms](https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/007_rabbitmq_publisher_confirms.png)
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
-To use publisher confirms, first put the channel into confirmation mode using the `Bunny::Channel#confirm_select` method:
+To use publisher confirms, first put the channel into confirmation mode using the `HotBunnies::Channel#confirm_select` method:
 
 ```
 channel.confirm_select
 ```
 
 From this moment on, every message published on this channel will cause the channel's _publisher index_ (message counter) to be incremented.
-It is possible to access the index using `Bunny::Channel#next_publish_seq_no` method. To check whether the channel is in confirmation mode,
-use the `Bunny::Channel#using_publisher_confirmations?` method:
+It is possible to access the index using `HotBunnies::Channel#next_publish_seq_no` method. To check whether the channel is in confirmation mode,
+use the `HotBunnies::Channel#using_publisher_confirmations?` method:
 
 ``` ruby
 ch.using_publisher_confirmations? # => false
@@ -140,8 +140,7 @@ require "bunny"
 puts "=> Using publisher confirms"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
@@ -171,7 +170,7 @@ puts "Closing..."
 conn.close
 ```
 
-In the example above, the `Bunny::Channel#wait_for_confirms` method blocks (waits) until all of the published messages are confirmed by the RabbitMQ broker. **Note** that a message may be nacked by the broker if, for some reason, it cannot take responsibility for the message. In that case, the `wait_for_confirms` method will return `false` and there is also a Ruby `Set` of nacked message IDs (`channel.nacked_set`) that can be inspected and dealt with as required.
+In the example above, the `HotBunnies::Channel#wait_for_confirms` method blocks (waits) until all of the published messages are confirmed by the RabbitMQ broker. **Note** that a message may be nacked by the broker if, for some reason, it cannot take responsibility for the message. In that case, the `wait_for_confirms` method will return `false` and there is also a Ruby `Set` of nacked message IDs (`channel.nacked_set`) that can be inspected and dealt with as required.
 
 ### Learn More
 
@@ -184,9 +183,9 @@ discard them or requeue them. Unfortunately, basic.reject provides no support fo
 
 To solve this, RabbitMQ supports the basic.nack method that provides all of the functionality of basic.reject whilst also allowing for bulk processing of messages.
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
-Bunny exposes `basic.nack` via the `Bunny::Channel#nack` method, similar to `Bunny::Channel#ack` and `Bunny::Channel#reject`:
+Bunny exposes `basic.nack` via the `HotBunnies::Channel#nack` method, similar to `HotBunnies::Channel#ack` and `HotBunnies::Channel#reject`:
 
 ``` ruby
 # nack multiple messages at once
@@ -207,8 +206,7 @@ require "bunny"
 puts "=> Using publisher confirms"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true)
@@ -242,7 +240,7 @@ See also rabbitmq.com section on [basic.nack](http://www.rabbitmq.com/nack.html)
 The Alternate Exchanges RabbitMQ extension to AMQP 0.9.1 allows developers to define "fallback" exchanges
 where unroutable messages will be sent.
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
 To specify exchange A as an alternate exchange to exchange B, specify the 'alternate-exchange' argument on declaration of B:
 
@@ -265,8 +263,7 @@ require "bunny"
 puts "=> Using alternate exchanges"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x1   = ch.fanout("bunny.examples.ae.exchange1", :auto_delete => true, :durable => false)
@@ -295,9 +292,9 @@ See also rabbitmq.com section on [Alternate Exchanges](http://www.rabbitmq.com/a
 RabbitMQ supports [exchange-to-exchange bindings](http://www.rabbitmq.com/e2e.html) to allow even richer routing topologies as well as a backbone for
 some other features (e.g. tracing).
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
-Bunny 0.9 exposes it via `Bunny::Exchange#bind` which is semantically the same as `Bunny::Queue#bind` but binds
+Bunny 0.9 exposes it via `HotBunnies::Exchange#bind` which is semantically the same as `HotBunnies::Queue#bind` but binds
 two exchanges:
 
 ``` ruby
@@ -316,8 +313,7 @@ require "bunny"
 puts "=> Using exchange-to-exchange bindings"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x1   = ch.fanout("bunny.examples.e2e.exchange1", :auto_delete => true, :durable => false)
@@ -344,18 +340,18 @@ See also rabbitmq.com section on [Exchange-to-Exchange Bindings](http://www.rabb
 
 ## Consumer Cancellation Notifications
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
 In order to use consumer cancellation notifications, you need to use consumer objects (documented in the [Queues and Consumers guide](/articles/queues.html)).
 When a consumer is cancelled, the `#handle_cancellation` method will be called on it. To register a consumer that is an object
-and not just message handler block, use `Bunny::Queue#subscribe_with` instead of `Bunny::Queue#subscribe`:
+and not just message handler block, use `HotBunnies::Queue#subscribe_with` instead of `HotBunnies::Queue#subscribe`:
 
 ``` ruby
 ch   = conn.create_channel
 
 module Bunny
   module Examples
-    class ExampleConsumer < Bunny::Consumer
+    class ExampleConsumer < HotBunnies::Consumer
       def cancelled?
         @cancelled
       end
@@ -369,7 +365,7 @@ module Bunny
 end
 
 q    = ch.queue("", :exclusive => true)
-c    = Bunny::Examples::ExampleConsumer.new(ch, q)
+c    = HotBunnies::Examples::ExampleConsumer.new(ch, q)
 q.subscribe_with(c)
 ```
 
@@ -384,14 +380,13 @@ require "bunny"
 puts "=> Using dead letter exchange"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 
 module Bunny
   module Examples
-    class ExampleConsumer < Bunny::Consumer
+    class ExampleConsumer < HotBunnies::Consumer
       def cancelled?
         @cancelled
       end
@@ -405,7 +400,7 @@ module Bunny
 end
 
 q    = ch.queue("", :exclusive => true)
-c    = Bunny::Examples::ExampleConsumer.new(ch, q)
+c    = HotBunnies::Examples::ExampleConsumer.new(ch, q)
 q.subscribe_with(c)
 
 sleep 0.1
@@ -427,9 +422,9 @@ it will be deleted. *Unused* here means that the queue
 
  * has no consumers
  * is not redeclared
- * no message fetches happened (using `basic.get` AMQP 0.9.1 method, that is, `Bunny::Queue#pop` in Bunny)
+ * no message fetches happened (using `basic.get` AMQP 0.9.1 method, that is, `HotBunnies::Queue#pop` in Bunny)
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
 Use the `"x-expires"` optional queue argument to set how long the queue will be allowed to be unused in milliseconds. After that time,
 the queue will be removed by RabbitMQ.
@@ -449,8 +444,7 @@ require "bunny"
 puts "=> Demonstrating queue TTL (queue leases)"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true, :arguments => {"x-expires" => 300})
@@ -459,7 +453,7 @@ sleep 0.4
 begin
   # this will raise because the queue is already deleted
   q.message_count
-rescue Bunny::NotFound => nfe
+rescue HotBunnies::NotFound => nfe
   puts "Got a 404 response: the queue has already been removed"
 end
 
@@ -476,9 +470,9 @@ See also rabbitmq.com section on [Queue Leases](http://www.rabbitmq.com/ttl.html
 
 A TTL can be specified on a per-message basis, by setting the `:expiration` property when publishing.
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
-`Bunny::Exchange#publish` recognizes the `:expiration` option that is message time-to-live (TTL) in milliseconds:
+`HotBunnies::Exchange#publish` recognizes the `:expiration` option that is message time-to-live (TTL) in milliseconds:
 
 ``` ruby
 # 1 second
@@ -499,8 +493,7 @@ require "bunny"
 puts "=> Using per-message TTL"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
@@ -541,7 +534,7 @@ that lets clients have extra control over routing.
 The values associated with the `"CC"` and `"BCC"` header keys will be added to the routing key if they are present.
 If neither of those headers is present, this extension has no effect.
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
 To use sender-selected distribution, set the `"CC"` and `"BCC"` headers like you would any other header:
 
@@ -560,11 +553,10 @@ require "bunny"
 puts "=> Using sender-selected distribution"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
-x    = ch.direct("bunny.examples.ssd.exchange")
+x    = ch.direct(hot_bunnies.examples.ssd.exchange")
 q1   = ch.queue("", :exclusive => true).bind(x, :routing_key => "one")
 q2   = ch.queue("", :exclusive => true).bind(x, :routing_key => "two")
 q3   = ch.queue("", :exclusive => true).bind(x, :routing_key => "three")
@@ -597,7 +589,7 @@ A message is dead-lettered when any of the following events occur:
 The message is rejected (basic.reject or basic.nack) with requeue=false; or
 The TTL for the message expires.
 
-### How To Use It With Bunny 0.9+
+### How To Use It With Hot Bunnies
 
 Dead-letter Exchange is a feature that is used by specifying additional queue arguments:
 
@@ -620,12 +612,11 @@ require "bunny"
 puts "=> Using dead letter exchange"
 puts
 
-conn = Bunny.new
-conn.start
+conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
-dlx  = ch.fanout("bunny.examples.dlx.exchange")
+dlx  = ch.fanout("hot_bunnies.examples.dlx.exchange")
 q    = ch.queue("", :exclusive => true, :arguments => {"x-dead-letter-exchange" => dlx.name}).bind(x)
 # dead letter queue
 dlq  = ch.queue("", :exclusive => true).bind(dlx)
@@ -633,10 +624,10 @@ dlq  = ch.queue("", :exclusive => true).bind(dlx)
 x.publish("")
 sleep 0.2
 
-delivery_info, _, _ = q.pop(:ack => true)
+metadata, _ = q.pop(:ack => true)
 puts "#{dlq.message_count} messages dead lettered so far"
 puts "Rejecting a message"
-ch.nack(delivery_info.delivery_tag, false)
+ch.nack(metadata.delivery_tag, false)
 sleep 0.2
 puts "#{dlq.message_count} messages dead lettered so far"
 
@@ -653,8 +644,8 @@ See also rabbitmq.com section on [Dead Letter Exchange](http://www.rabbitmq.com/
 
 RabbitMQ provides a number of useful extensions to the AMQP 0.9.1 specification.
 
-Bunny 0.9 and later releases have RabbitMQ extensions support built into the core. Some features are based on optional arguments
-for queues, exchanges or messages, and some are Bunny public API features. Any future argument-based extensions are likely to be
+Hot Bunnies has RabbitMQ extensions support built into the core. Some features are based on optional arguments
+for queues, exchanges or messages, and some are public Hot Bunnies API features. Any future argument-based extensions are likely to be
 useful with Bunny immediately, without any library modifications.
 
 ## What to Read Next
@@ -670,6 +661,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Bunny mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
