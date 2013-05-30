@@ -11,9 +11,9 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 (including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubybunny.info).
 
 
-## What version of Bunny does this guide cover?
+## What version of Hot Bunnies does this guide cover??
 
-This guide covers Bunny 0.9.0.
+This guide covers Hot Bunnies 2.0.
 
 ## Entity durability and message persistence
 
@@ -51,7 +51,7 @@ Messages may be published as persistent and this, in conjunction with queue dura
 
 **Note** that publishing persistent messages affects performance (just like with data stores, durability comes at a certain cost to performance).
 
-Pass the `:persistent => true` argument to the `Bunny::Exchange#publish` method to publish your message as persistent:
+Pass the `:persistent => true` argument to the `HotBunnies::Exchange#publish` method to publish your message as persistent:
 
 ``` ruby
 exch.publish("My message", :persistent => true)
@@ -82,6 +82,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Bunny mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
