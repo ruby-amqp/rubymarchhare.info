@@ -1,7 +1,7 @@
-# Bunny Documentation
+# Hot Bunnies Documentation
 
-This is a documentation site for [Bunny](http://rubybunny.info), a dead easy
-to use RabbitMQ client for Ruby.
+This is a documentation site for [Hot Bunnies](http://hotbunnies.info), a dead easy
+to use RabbitMQ client for JRuby.
 
 
 ## Install Dependencies
@@ -29,6 +29,6 @@ then navigate to [localhost:4000](http://localhost:4000)
 
 ## License & Copyright
 
-Copyright (C) 2012-2013 Michael S. Klishin.
+Copyright (C) 2013 Michael S. Klishin.
 
 Distributed under the MIT License.
