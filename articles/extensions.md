@@ -1,5 +1,5 @@
 ---
-title: "Working with RabbitMQ extensions from Ruby with Bunny"
+title: "Working with RabbitMQ extensions from Ruby with Hot Bunnies"
 layout: article
 ---
 
@@ -19,10 +19,10 @@ Hot Bunnies supports all [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq
   * [Dead Letter Exchanges](http://www.rabbitmq.com/dlx.html)
   * [Validated user_id](http://www.rabbitmq.com/validated-user-id.html)
 
-This guide briefly describes how to use these extensions with Bunny.
+This guide briefly describes how to use these extensions with Hot Bunnies.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubybunny.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
 
 ## What version of Hot Bunnies does this guide cover??
 
@@ -41,7 +41,7 @@ a message published to a queue can live before it is discarded.
 A message that has been in the queue for longer than the configured TTL is said to be dead. Dead messages will not be delivered
 to consumers and cannot be fetched using the *basic.get* operation (`HotBunnies::Queue#pop`).
 
-Message TTL is specified using the *x-message-ttl* argument on declaration. With Bunny, you pass it to `HotBunnies::Queue#initialize` or `HotBunnies::Channel#queue`:
+Message TTL is specified using the *x-message-ttl* argument on declaration. With Hot Bunnies, you pass it to `HotBunnies::Queue#initialize` or `HotBunnies::Channel#queue`:
 
 ``` ruby
 # 1000 milliseconds
@@ -156,12 +156,6 @@ end
 # Block until all messages have been confirmed
 success = ch.wait_for_confirms
 
-if !success
-  ch.nacked_set.each do |n|
-    # Do something with the nacked message ID
-  end
-end
-
 sleep 0.2
 puts "Processed all published messages. #{q.name} now has #{q.message_count} messages."
 
@@ -185,14 +179,14 @@ To solve this, RabbitMQ supports the basic.nack method that provides all of the 
 
 ### How To Use It With Hot Bunnies
 
-Bunny exposes `basic.nack` via the `HotBunnies::Channel#nack` method, similar to `HotBunnies::Channel#ack` and `HotBunnies::Channel#reject`:
+Hot Bunnies exposes `basic.nack` via the `HotBunnies::Channel#nack` method, similar to `HotBunnies::Channel#ack` and `HotBunnies::Channel#reject`:
 
 ``` ruby
 # nack multiple messages at once
-subject.nack(delivery_info.delivery_tag, false, true)
+subject.nack(metadata.delivery_tag, false, true)
 
 # nack a single message at once, the same as ch.reject(delivery_info.delivery_tag, false)
-subject.nack(delivery_info.delivery_tag, false)
+subject.nack(metadata.delivery_tag, false)
 ```
 
 ### Example
@@ -216,11 +210,11 @@ q    = ch.queue("", :exclusive => true)
 end
 
 20.times do
-  delivery_info, _, _ = q.pop(:ack => true)
+  metadata, _ = q.pop(:ack => true)
 
-  if delivery_info.delivery_tag == 20
+  if metadata.delivery_tag == 20
     # requeue them all at once with basic.nack
-    ch.nack(delivery_info.delivery_tag, true, true)
+    ch.nack(metadata.delivery_tag, true, true)
   end
 end
 
@@ -294,7 +288,7 @@ some other features (e.g. tracing).
 
 ### How To Use It With Hot Bunnies
 
-Bunny 0.9 exposes it via `HotBunnies::Exchange#bind` which is semantically the same as `HotBunnies::Queue#bind` but binds
+Hot Bunnies 0.9 exposes it via `HotBunnies::Exchange#bind` which is semantically the same as `HotBunnies::Queue#bind` but binds
 two exchanges:
 
 ``` ruby
@@ -342,32 +336,10 @@ See also rabbitmq.com section on [Exchange-to-Exchange Bindings](http://www.rabb
 
 ### How To Use It With Hot Bunnies
 
-In order to use consumer cancellation notifications, you need to use consumer objects (documented in the [Queues and Consumers guide](/articles/queues.html)).
-When a consumer is cancelled, the `#handle_cancellation` method will be called on it. To register a consumer that is an object
-and not just message handler block, use `HotBunnies::Queue#subscribe_with` instead of `HotBunnies::Queue#subscribe`:
+When a consumer is cancelled via RabbitMQ management UI or because the queue has been deleted, the consumer receives
+a **cancellation notification**. To handle it, pass a proc as the `:on_cancellation` option to `HotBunnies::Queue#subscribe`.
 
-``` ruby
-ch   = conn.create_channel
-
-module Bunny
-  module Examples
-    class ExampleConsumer < HotBunnies::Consumer
-      def cancelled?
-        @cancelled
-      end
-
-      def handle_cancellation(basic_cancel)
-        puts "#{@consumer_tag} was cancelled"
-        @cancelled = true
-      end
-    end
-  end
-end
-
-q    = ch.queue("", :exclusive => true)
-c    = HotBunnies::Examples::ExampleConsumer.new(ch, q)
-q.subscribe_with(c)
-```
+The block should take 3 arguments: a channel, a consumer and a consumer tag.
 
 ### Example
 
@@ -375,38 +347,28 @@ q.subscribe_with(c)
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require "bunny"
+require "rubygems"
+require "hot_bunnies"
 
-puts "=> Using dead letter exchange"
+puts "=> Demonstrating consumer cancellation notification"
 puts
 
 conn = HotBunnies.connect
 
 ch   = conn.create_channel
-
-module Bunny
-  module Examples
-    class ExampleConsumer < HotBunnies::Consumer
-      def cancelled?
-        @cancelled
-      end
-
-      def handle_cancellation(basic_cancel)
-        puts "#{@consumer_tag} was cancelled"
-        @cancelled = true
-      end
-    end
-  end
+q    = ch.queue("", :exclusive => true)
+c    = q.subscribe(:on_cancellation => Proc.new { |ch, consumer, consumer_tag| puts "Consumer w/ tag #{consumer_tag} was cancelled remotely" }) do |metadata, payload|
+  # no-op
 end
 
-q    = ch.queue("", :exclusive => true)
-c    = HotBunnies::Examples::ExampleConsumer.new(ch, q)
-q.subscribe_with(c)
-
 sleep 0.1
+puts "Consumer #{c.consumer_tag} is not yet cancelled" unless c.cancelled?
 q.delete
 
 sleep 0.1
+
+puts "Consumer #{c.consumer_tag} is now cancelled" if c.cancelled?
+
 puts "Disconnecting..."
 conn.close
 ```
@@ -488,9 +450,10 @@ x.publish("", :expiration => (5 * 60 * 1000))
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require "bunny"
+require "rubygems"
+require "hot_bunnies"
 
-puts "=> Using per-message TTL"
+puts "=> Demonstrating per-message TTL"
 puts
 
 conn = HotBunnies.connect
@@ -500,15 +463,15 @@ x    = ch.fanout("amq.fanout")
 q    = ch.queue("", :exclusive => true).bind(x)
 
 10.times do |i|
-  x.publish("Message #{i}", :expiration => 1000)
+  x.publish("Message #{i}", :properties => {:expiration => 1000})
 end
 
 sleep 0.7
-_, _, content1 = q.pop
+_, content1 = q.pop
 puts "Fetched #{content1.inspect} after 0.7 second"
 
 sleep 0.8
-_, _, content2 = q.pop
+_, content2 = q.pop
 msg = if content2
         content2.inspect
       else
@@ -548,22 +511,25 @@ x.publish("Message #{i}", :routing_key => "one", :headers => {"CC" => ["two", "t
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require "bunny"
+require "rubygems"
+require "hot_bunnies"
 
-puts "=> Using sender-selected distribution"
+puts "=> Demonstrating sender-selected distribution"
 puts
 
 conn = HotBunnies.connect
 
 ch   = conn.create_channel
-x    = ch.direct(hot_bunnies.examples.ssd.exchange")
+x    = ch.direct("hot_bunnies.examples.ssd.exchange")
 q1   = ch.queue("", :exclusive => true).bind(x, :routing_key => "one")
 q2   = ch.queue("", :exclusive => true).bind(x, :routing_key => "two")
 q3   = ch.queue("", :exclusive => true).bind(x, :routing_key => "three")
 q4   = ch.queue("", :exclusive => true).bind(x, :routing_key => "four")
 
 10.times do |i|
-  x.publish("Message #{i}", :routing_key => "one", :headers => {"CC" => ["two", "three"]})
+  x.publish("Message #{i}", :routing_key => "one", :properties => {
+              :headers => {"CC" => ["two", "three"]}
+            })
 end
 
 sleep 0.2
@@ -607,16 +573,17 @@ q    = ch.queue("", :exclusive => true, :arguments => {"x-dead-letter-exchange" 
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require "bunny"
+require "rubygems"
+require "hot_bunnies"
 
-puts "=> Using dead letter exchange"
+puts "=> Demonstrating dead letter exchange"
 puts
 
 conn = HotBunnies.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
-dlx  = ch.fanout("hot_bunnies.examples.dlx.exchange")
+dlx  = ch.fanout("bunny.examples.dlx.exchange")
 q    = ch.queue("", :exclusive => true, :arguments => {"x-dead-letter-exchange" => dlx.name}).bind(x)
 # dead letter queue
 dlq  = ch.queue("", :exclusive => true).bind(dlx)
@@ -627,7 +594,7 @@ sleep 0.2
 metadata, _ = q.pop(:ack => true)
 puts "#{dlq.message_count} messages dead lettered so far"
 puts "Rejecting a message"
-ch.nack(metadata.delivery_tag, false)
+ch.nack(metadata.delivery_tag)
 sleep 0.2
 puts "#{dlq.message_count} messages dead lettered so far"
 
@@ -646,7 +613,7 @@ RabbitMQ provides a number of useful extensions to the AMQP 0.9.1 specification.
 
 Hot Bunnies has RabbitMQ extensions support built into the core. Some features are based on optional arguments
 for queues, exchanges or messages, and some are public Hot Bunnies API features. Any future argument-based extensions are likely to be
-useful with Bunny immediately, without any library modifications.
+useful with Hot Bunnies immediately, without any library modifications.
 
 ## What to Read Next
 
