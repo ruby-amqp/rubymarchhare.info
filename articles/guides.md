@@ -5,7 +5,7 @@ layout: article
 
 ## Guide list
 
-[Bunny documentation](https://github.com/ruby-amqp/rubybunny.info) is organized as a number of guides, covering all kinds of topics.
+[Bunny documentation](https://github.com/ruby-amqp/hotbunnies.info) is organized as a number of guides, covering all kinds of topics.
 
 We recommend that you read these guides, if possible, in this order:
 

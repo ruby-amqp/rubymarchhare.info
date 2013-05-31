@@ -8,7 +8,7 @@ layout: article
 This guide covers bindings in RabbitMQ, what they are, what role they play and how to accomplish typical operations using Bunny.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubybunny.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
 
 
 ## What version of Hot Bunnies does this guide cover??
