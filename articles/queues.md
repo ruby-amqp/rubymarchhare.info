@@ -112,7 +112,7 @@ result in a channel-level exception with reply code `403 (ACCESS_REFUSED)` and a
 
     ACCESS_REFUSED - queue name 'amq.queue' contains reserved prefix 'amq.*'
     
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Bunny will raise a `HotBunnies::ChannelAlreadyClosed` error.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `HotBunnies::ChannelAlreadyClosed` error.
 
 ### Queue Re-Declaration With Different Attributes
 
@@ -121,7 +121,7 @@ will be raised. The reply text will be similar to this:
 
     PRECONDITION_FAILED - parameters for queue 'bunny.examples.channel_exception' in vhost '/' not equivalent
 
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Bunny will raise a `HotBunnies::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `HotBunnies::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
 
 ## Queue Life-cycle Patterns
 
@@ -293,8 +293,8 @@ metadata.delivery_tag
 #### Blocking or Non-Blocking Behavior
 
 The subscribe method will not block the calling thread by default. If you want to block the caller, pass `:block => true` to
-`HotBunnies::Queue#subscribe`. In Bunny 0.9.0 and later, network activity and dispatch of delivered messages
-to consumers happens in separate threads that Bunny maintains internally, so it does not have to
+`HotBunnies::Queue#subscribe`. In Hot Bunnies, network activity and dispatch of delivered messages
+to consumers happens in separate threads that the library maintains internally, so it does not have to
 block the thread that calls `HotBunnies::Queue#subscribe`. However, it may be convenient to do so
 in long-running consumer applications.
 
@@ -696,7 +696,7 @@ ch1.reject(metadata.delivery_tag, true)
 Messages are rejected with the `basic.reject` AMQP method. However, there is one notable limitation that `basic.reject` has:
 there is no way to reject multiple messages, as you can do with acknowledgements. However, if you are using [RabbitMQ](http://rabbitmq.com), then there is a solution.
 RabbitMQ provides an AMQP 0.9.1 extension known as [negative acknowledgements](http://www.rabbitmq.com/extensions.html#negative-acknowledgements) (nacks) and
-Bunny supports this extension. For more information, please refer to the [RabbitMQ Extensions guide](/articles/rabbitmq_extensions.html).
+Hot Bunnies supports this extension. For more information, please refer to the [RabbitMQ Extensions guide](/articles/rabbitmq_extensions.html).
 
 ### QoS — Prefetching messages
 
@@ -805,7 +805,7 @@ result in a channel-level exception.
 It is possible to query the number of messages in a queue and the number of consumers it has by declaring the queue
 with the `:passive` attribute set.
 The response (`queue.declare-ok` AMQP method) will include the number of messages along with
-the number of consumers. However, Bunny provides a convenience method, `HotBunnies::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
+the number of consumers. However, Hot Bunnies provides a convenience method, `HotBunnies::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
 
  * `HotBunnies::Queue#message_count`
  * `HotBunnies::Queue#consumer_count`
