@@ -57,17 +57,36 @@ Pass the `:persistent => true` argument to the `HotBunnies::Exchange#publish` me
 exch.publish("My message", :persistent => true)
 ```
 
-### Clustering
+### Clustering and High Availability
 
-To achieve the degree of durability that critical applications need, it is necessary but not enough to use durable queues, exchanges and persistent messages. You need to use a cluster of brokers because otherwise, a single hardware problem may bring a broker down completely.
+To achieve the degree of durability that critical applications need,
+it is necessary but not enough to use durable queues, exchanges and
+persistent messages. You need to use a cluster of brokers because
+otherwise, a single hardware problem may bring a broker down
+completely.
 
-See the [RabbitMQ clustering guide](http://www.rabbitmq.com/clustering.html) for in-depth discussion of this topic.
+RabbitMQ offers a number of high availability features for both scenarios with more
+(LAN) and less (WAN) reliable network connections.
 
-### Highly available queues
+See the [RabbitMQ clustering](http://www.rabbitmq.com/clustering.html)
+and [high availability](http://www.rabbitmq.com/ha.html) guides for
+in-depth discussion of this topic.
 
-Whilst the use of clustering provides for greater durability of critical systems, in order to achieve the highest level of resilience for queues and messages, high availability configuration should be used. This is because although exchanges and bindings survive the loss of individual nodes by using clustering, queues and their messages do not. A queue and its contents reside on exactly one node, thus the loss of a node will render its queues unavailable.
 
-See the [RabbitMQ high availability guide](http://www.rabbitmq.com/ha.html) for an explanation of this topic.
+### Highly Available (Mirrored) Queues
+
+Whilst the use of clustering provides for greater durability of
+critical systems, in order to achieve the highest level of resilience
+for queues and messages, high availability configuration should be
+used. This is because although exchanges and bindings survive the loss
+of individual nodes by using clustering, messages do
+not. Without mirroring, queue contents reside on exactly one node, thus the
+loss of a node will cause message loss.
+
+See the [RabbitMQ high availability
+guide](http://www.rabbitmq.com/ha.html) for more information about
+mirrored queues.
+
 
 ## What to Read Next
 
