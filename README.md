@@ -1,6 +1,6 @@
-# Hot Bunnies Documentation
+# March Hare Documentation
 
-This is a documentation site for [Hot Bunnies](http://hotbunnies.info), a dead easy
+This is a documentation site for [March Hare](http://rubymarchhare.info), a dead easy
 to use RabbitMQ client for JRuby.
 
 
