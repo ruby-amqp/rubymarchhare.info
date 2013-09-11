@@ -22,7 +22,7 @@ Hot Bunnies supports all [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq
 This guide briefly describes how to use these extensions with Hot Bunnies.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 ## What version of Hot Bunnies does this guide cover??
 
@@ -39,9 +39,9 @@ The support is built into the core.
 Per-queue Message Time-to-Live (TTL) is a RabbitMQ extension to AMQP 0.9.1 that allows developers to control how long
 a message published to a queue can live before it is discarded.
 A message that has been in the queue for longer than the configured TTL is said to be dead. Dead messages will not be delivered
-to consumers and cannot be fetched using the *basic.get* operation (`HotBunnies::Queue#pop`).
+to consumers and cannot be fetched using the *basic.get* operation (`MarchHare::Queue#pop`).
 
-Message TTL is specified using the *x-message-ttl* argument on declaration. With Hot Bunnies, you pass it to `HotBunnies::Queue#initialize` or `HotBunnies::Channel#queue`:
+Message TTL is specified using the *x-message-ttl* argument on declaration. With Hot Bunnies, you pass it to `MarchHare::Queue#initialize` or `MarchHare::Channel#queue`:
 
 ``` ruby
 # 1000 milliseconds
@@ -54,19 +54,19 @@ it has no effect on copies of the message in other queues.
 ### Example
 
 The example below sets the message TTL for a new server-named queue to be 1000 milliseconds. It then publishes several messages that are routed to the queue and tries
-to fetch messages using the *basic.get* AMQP 0.9.1 method ({% yard_link HotBunnies::Queue#pop %} after 0.7 and 1.5 seconds:
+to fetch messages using the *basic.get* AMQP 0.9.1 method ({% yard_link MarchHare::Queue#pop %} after 0.7 and 1.5 seconds:
 
 ``` ruby
 #!/usr/bin/env ruby
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Demonstrating per-queue message TTL"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
@@ -113,15 +113,15 @@ a publisher and a RabbitMQ node instead of a consumer and a RabbitMQ node.
 
 ### How To Use It With Hot Bunnies
 
-To use publisher confirms, first put the channel into confirmation mode using the `HotBunnies::Channel#confirm_select` method:
+To use publisher confirms, first put the channel into confirmation mode using the `MarchHare::Channel#confirm_select` method:
 
 ```
 channel.confirm_select
 ```
 
 From this moment on, every message published on this channel will cause the channel's _publisher index_ (message counter) to be incremented.
-It is possible to access the index using `HotBunnies::Channel#next_publish_seq_no` method. To check whether the channel is in confirmation mode,
-use the `HotBunnies::Channel#using_publisher_confirmations?` method:
+It is possible to access the index using `MarchHare::Channel#next_publish_seq_no` method. To check whether the channel is in confirmation mode,
+use the `MarchHare::Channel#using_publisher_confirmations?` method:
 
 ``` ruby
 ch.using_publisher_confirmations? # => false
@@ -140,7 +140,7 @@ require "bunny"
 puts "=> Using publisher confirms"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
@@ -164,7 +164,7 @@ puts "Closing..."
 conn.close
 ```
 
-In the example above, the `HotBunnies::Channel#wait_for_confirms` method blocks (waits) until all of the published messages are confirmed by the RabbitMQ broker. **Note** that a message may be nacked by the broker if, for some reason, it cannot take responsibility for the message. In that case, the `wait_for_confirms` method will return `false` and there is also a Ruby `Set` of nacked message IDs (`channel.nacked_set`) that can be inspected and dealt with as required.
+In the example above, the `MarchHare::Channel#wait_for_confirms` method blocks (waits) until all of the published messages are confirmed by the RabbitMQ broker. **Note** that a message may be nacked by the broker if, for some reason, it cannot take responsibility for the message. In that case, the `wait_for_confirms` method will return `false` and there is also a Ruby `Set` of nacked message IDs (`channel.nacked_set`) that can be inspected and dealt with as required.
 
 ### Learn More
 
@@ -179,7 +179,7 @@ To solve this, RabbitMQ supports the basic.nack method that provides all of the 
 
 ### How To Use It With Hot Bunnies
 
-Hot Bunnies exposes `basic.nack` via the `HotBunnies::Channel#nack` method, similar to `HotBunnies::Channel#ack` and `HotBunnies::Channel#reject`:
+Hot Bunnies exposes `basic.nack` via the `MarchHare::Channel#nack` method, similar to `MarchHare::Channel#ack` and `MarchHare::Channel#reject`:
 
 ``` ruby
 # nack multiple messages at once
@@ -200,7 +200,7 @@ require "bunny"
 puts "=> Using publisher confirms"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true)
@@ -257,7 +257,7 @@ require "bunny"
 puts "=> Using alternate exchanges"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x1   = ch.fanout("bunny.examples.ae.exchange1", :auto_delete => true, :durable => false)
@@ -288,7 +288,7 @@ some other features (e.g. tracing).
 
 ### How To Use It With Hot Bunnies
 
-Hot Bunnies 0.9 exposes it via `HotBunnies::Exchange#bind` which is semantically the same as `HotBunnies::Queue#bind` but binds
+Hot Bunnies 0.9 exposes it via `MarchHare::Exchange#bind` which is semantically the same as `MarchHare::Queue#bind` but binds
 two exchanges:
 
 ``` ruby
@@ -307,7 +307,7 @@ require "bunny"
 puts "=> Using exchange-to-exchange bindings"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x1   = ch.fanout("bunny.examples.e2e.exchange1", :auto_delete => true, :durable => false)
@@ -337,7 +337,7 @@ See also rabbitmq.com section on [Exchange-to-Exchange Bindings](http://www.rabb
 ### How To Use It With Hot Bunnies
 
 When a consumer is cancelled via RabbitMQ management UI or because the queue has been deleted, the consumer receives
-a **cancellation notification**. To handle it, pass a proc as the `:on_cancellation` option to `HotBunnies::Queue#subscribe`.
+a **cancellation notification**. To handle it, pass a proc as the `:on_cancellation` option to `MarchHare::Queue#subscribe`.
 
 The block should take 3 arguments: a channel, a consumer and a consumer tag.
 
@@ -348,12 +348,12 @@ The block should take 3 arguments: a channel, a consumer and a consumer tag.
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Demonstrating consumer cancellation notification"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true)
@@ -384,7 +384,7 @@ it will be deleted. *Unused* here means that the queue
 
  * has no consumers
  * is not redeclared
- * no message fetches happened (using `basic.get` AMQP 0.9.1 method, that is, `HotBunnies::Queue#pop` in Bunny)
+ * no message fetches happened (using `basic.get` AMQP 0.9.1 method, that is, `MarchHare::Queue#pop` in Bunny)
 
 ### How To Use It With Hot Bunnies
 
@@ -406,7 +406,7 @@ require "bunny"
 puts "=> Demonstrating queue TTL (queue leases)"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true, :arguments => {"x-expires" => 300})
@@ -415,7 +415,7 @@ sleep 0.4
 begin
   # this will raise because the queue is already deleted
   q.message_count
-rescue HotBunnies::NotFound => nfe
+rescue MarchHare::NotFound => nfe
   puts "Got a 404 response: the queue has already been removed"
 end
 
@@ -434,7 +434,7 @@ A TTL can be specified on a per-message basis, by setting the `:expiration` prop
 
 ### How To Use It With Hot Bunnies
 
-`HotBunnies::Exchange#publish` recognizes the `:expiration` option that is message time-to-live (TTL) in milliseconds:
+`MarchHare::Exchange#publish` recognizes the `:expiration` option that is message time-to-live (TTL) in milliseconds:
 
 ``` ruby
 # 1 second
@@ -451,12 +451,12 @@ x.publish("", :expiration => (5 * 60 * 1000))
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Demonstrating per-message TTL"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")
@@ -512,15 +512,15 @@ x.publish("Message #{i}", :routing_key => "one", :headers => {"CC" => ["two", "t
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Demonstrating sender-selected distribution"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
-x    = ch.direct("hot_bunnies.examples.ssd.exchange")
+x    = ch.direct("march_hare.examples.ssd.exchange")
 q1   = ch.queue("", :exclusive => true).bind(x, :routing_key => "one")
 q2   = ch.queue("", :exclusive => true).bind(x, :routing_key => "two")
 q3   = ch.queue("", :exclusive => true).bind(x, :routing_key => "three")
@@ -574,12 +574,12 @@ q    = ch.queue("", :exclusive => true, :arguments => {"x-dead-letter-exchange" 
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Demonstrating dead letter exchange"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("amq.fanout")

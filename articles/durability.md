@@ -8,7 +8,7 @@ layout: article
 This guide covers queue, exchange and message durability, as well as other topics related to durability, for example, durability in clustered environments.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 
 ## What version of Hot Bunnies does this guide cover??
@@ -51,7 +51,7 @@ Messages may be published as persistent and this, in conjunction with queue dura
 
 **Note** that publishing persistent messages affects performance (just like with data stores, durability comes at a certain cost to performance).
 
-Pass the `:persistent => true` argument to the `HotBunnies::Exchange#publish` method to publish your message as persistent:
+Pass the `:persistent => true` argument to the `MarchHare::Exchange#publish` method to publish your message as persistent:
 
 ``` ruby
 exch.publish("My message", :persistent => true)

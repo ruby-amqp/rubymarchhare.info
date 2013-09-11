@@ -1,5 +1,5 @@
 ---
-title: "Working with RabbitMQ exchanges and publishing messages from Ruby with HotBunnies"
+title: "Working with RabbitMQ exchanges and publishing messages from Ruby with MarchHare"
 layout: article
 ---
 
@@ -9,7 +9,7 @@ This guide covers multiple topics related to RabbitMQ exchanges and message publ
 including common usage scenarios and how to accomplish typical operations using Hot Bunnies.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 
 ## What version of Hot Bunnies does this guide cover??
@@ -83,27 +83,27 @@ Graphically this can be represented as:
 
 There are two ways to declare a fanout exchange:
 
- * Using the `HotBunnies::Channel#fanout` method
- * Instantiate `HotBunnies::Exchange` directly
+ * Using the `MarchHare::Channel#fanout` method
+ * Instantiate `MarchHare::Exchange` directly
 
 Here are two examples to demonstrate:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("activity.events")
 ```
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
-x    = HotBunnies::Exchange.new(ch,  "activity.events", :type => :fanout)
+x    = MarchHare::Exchange.new(ch,  "activity.events", :type => :fanout)
 ```
 
 ### Fanout routing example
@@ -116,12 +116,12 @@ publish a message to the exchange:
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Fanout exchange routing"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.fanout("examples.pings")
@@ -198,27 +198,27 @@ Here is a graphical representation:
 
 ### Declaring a direct exchange
 
- * Using the `HotBunnies::Channel#direct` method
- * Instantiate `HotBunnies::Exchange` directly
+ * Using the `MarchHare::Channel#direct` method
+ * Instantiate `MarchHare::Exchange` directly
 
 Here are two examples to demonstrate:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.direct("imaging")
 ```
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
-x    = HotBunnies::Exchange.new(ch, "imaging", :type => :direct)
+x    = MarchHare::Exchange.new(ch, "imaging", :type => :direct)
 ```
 
 
@@ -231,12 +231,12 @@ Since direct exchanges use the *message routing key* for routing, message produc
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Direct exchange routing"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.direct("examples.imaging")
@@ -312,12 +312,12 @@ The default exchange is used by the "Hello, World" example:
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 ch   = conn.create_channel
 
-q    = ch.queue("hot_bunnies.examples.hello_world", :auto_delete => true)
+q    = ch.queue("march_hare.examples.hello_world", :auto_delete => true)
 
 q.subscribe do |metadata, payload|
   puts "Received #{payload}"
@@ -358,7 +358,7 @@ more efficient for this use case.
 
 Two classic examples of topic-based routing are stock price updates and location-specific data (for instance, weather broadcasts). Consumers indicate which
 topics they are interested in (think of it like subscribing to a feed for an individual tag of your favourite blog as opposed to the full feed). The routing is enabled
-by specifying a *routing pattern* to the `HotBunnies::Queue#bind` method, for example:
+by specifying a *routing pattern* to the `MarchHare::Queue#bind` method, for example:
 
 ``` ruby
 x    = ch.topic("weathr", :auto_delete => true)
@@ -369,7 +369,7 @@ q.subscribe do |metadata, payload|
 end
 ```
 
-In the example above we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `HotBunnies::Queue#bind` method. This means that
+In the example above we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `MarchHare::Queue#bind` method. This means that
 only messages with a routing key matching "americas.south.#" will be routed to the "americas.south" queue.
 
 A routing pattern consists of several words separated by dots, in a similar way to URI path segments being joined by slash. A few of examples:
@@ -409,9 +409,9 @@ Full example:
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
-connection = HotBunnies.connect
+connection = MarchHare.connect
 
 ch  = connection.create_channel
 # topic exchange name can be any string
@@ -468,19 +468,19 @@ they want to receive, the use of topic exchanges should be considered. To name a
 
 ## Declaring/Instantiating Exchanges
 
-With Hot Bunnies, exchanges can be declared in two ways: by instantiating `HotBunnies::Exchange` or by using a number of convenience methods on `HotBunnies::Channel`:
+With Hot Bunnies, exchanges can be declared in two ways: by instantiating `MarchHare::Exchange` or by using a number of convenience methods on `MarchHare::Channel`:
 
-  * `HotBunnies::Channel#default_exchange`
-  * `HotBunnies::Channel#direct`
-  * `HotBunnies::Channel#topic`
-  * `HotBunnies::Channel#fanout`
-  * `HotBunnies::Channel#headers`
+  * `MarchHare::Channel#default_exchange`
+  * `MarchHare::Channel#direct`
+  * `MarchHare::Channel#topic`
+  * `MarchHare::Channel#fanout`
+  * `MarchHare::Channel#headers`
 
 The previous sections on specific exchange types (direct, fanout, headers, etc.) provide plenty of examples of how these methods can be used.
 
 ## Publishing messages
 
-To publish a message to an exchange, use `HotBunnies::Exchange#publish`:
+To publish a message to an exchange, use `MarchHare::Exchange#publish`:
 
 ``` ruby
 x.publish("some data")
@@ -506,7 +506,7 @@ A few popular options for data serialization are:
 ### Message metadata
 
 AMQP messages have various metadata attributes that can be set when a message is published. Some of the attributes are well-known and mentioned in the AMQP 0.9.1 specification,
-others are specific to a particular application. Well-known attributes are listed here as options that `HotBunnies::Exchange#publish` takes
+others are specific to a particular application. Well-known attributes are listed here as options that `MarchHare::Exchange#publish` takes
 nested in `:properties`:
 
  * `:persistent`
@@ -523,7 +523,7 @@ nested in `:properties`:
  * `:user_id`
  * `:app_id`
 
-All other attributes can be added to a *headers table* (in Ruby, a hash) that `HotBunnies::Exchange#publish` accepts as the `:headers` option.
+All other attributes can be added to a *headers table* (in Ruby, a hash) that `MarchHare::Exchange#publish` accepts as the `:headers` option.
 
 An example:
 
@@ -533,7 +533,7 @@ now = Time.now
 x.publish("hello",
           :routing_key => "#{q.name}",
           :properties => {
-            :app_id       => "hot_bunnies.example",
+            :app_id       => "march_hare.example",
             :priority     => 8,
             :content_type => "application/octet-stream"
             :type         => "kinda.checkin",
@@ -637,7 +637,7 @@ A commonly asked question about RabbitMQ clients is "how to execute a piece of c
 
 Message publishing with Hot Bunnies happens in several steps:
 
- * `HotBunnies::Exchange#publish` takes a payload and various metadata attributes
+ * `MarchHare::Exchange#publish` takes a payload and various metadata attributes
  * Resulting payload is staged for writing
  * On the next event loop tick, data is transferred to the OS kernel using one of the underlying NIO APIs
  * OS kernel buffers data before sending it
@@ -673,12 +673,12 @@ The following code example demonstrates a message that is published as mandatory
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Publishing messages as mandatory"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.default_exchange
@@ -710,19 +710,19 @@ When a message is returned, the application that produced it can handle that mes
  * Log the event and discard the message
 
 Returned messages contain information about the exchange they were published to. Hot Bunnies associates
-returned message callbacks with consumers. To handle returned messages, use `HotBunnies::Exchange#on_return`:
+returned message callbacks with consumers. To handle returned messages, use `MarchHare::Exchange#on_return`:
 
 ``` ruby
 #!/usr/bin/env ruby
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Publishing messages as mandatory"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.default_exchange
@@ -756,7 +756,7 @@ Messages potentially spend some time in the queues to which they were routed bef
 To survive it, messages must be persisted to disk. This has a negative effect on performance, especially with network attached storage like NAS devices and Amazon EBS.
 AMQP 0.9.1 lets applications trade off performance for durability, or vice versa, on a message-by-message basis.
 
-To publish a persistent message, use the `:persistent` option that `HotBunnies::Exchange#publish` accepts:
+To publish a persistent message, use the `:persistent` option that `MarchHare::Exchange#publish` accepts:
 
 ``` ruby
 x.publish(data, :persistent => true)
@@ -814,12 +814,12 @@ that demonstrates headers routing:
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Headers exchange routing"
 puts
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 x    = ch.headers("headers")
@@ -865,13 +865,13 @@ When the `"x-match"` argument is set to `"any"`, just one matching header value 
 
 ### Declaring a Headers Exchange
 
-There are two ways to declare a headers exchange, either instantiate `HotBunnies::Exchange` directly:
+There are two ways to declare a headers exchange, either instantiate `MarchHare::Exchange` directly:
 
 ``` ruby
-x = HotBunnies::Exchange.new(ch, :headers, "matching")
+x = MarchHare::Exchange.new(ch, :headers, "matching")
 ```
 
-Or use the `HotBunnies::Channel#headers` method:
+Or use the `MarchHare::Channel#headers` method:
 
 ``` ruby
 x = ch.headers("matching")
@@ -969,18 +969,18 @@ lightweight Publisher Confirms, a RabbitMQ-specific extension.
 
 ## Binding Queues to Exchanges
 
-Queues are bound to exchanges using `HotBunnies::Queue#bind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
+Queues are bound to exchanges using `MarchHare::Queue#bind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
 
 
 ## Unbinding Queues from Exchanges
 
-Queues are unbound from exchanges using `HotBunnies::Queue#unbind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
+Queues are unbound from exchanges using `MarchHare::Queue#unbind`. This topic is described in detail in the [Queues and Consumers guide](/articles/queues.html).
 
 ## Deleting Exchanges
 
 ### Explicitly Deleting an Exchange
 
-Exchanges are deleted using the `HotBunnies::Exchange#delete`:
+Exchanges are deleted using the `MarchHare::Exchange#delete`:
 
 ``` ruby
 x = ch.topic("groups.013c6a65a1de9b15658446c6570ec39ff615ba15")
@@ -1013,8 +1013,8 @@ of headers.
 
 Most functions related to exchanges and publishing are found in two Hot Bunnies classes:
 
- * `HotBunnies::Exchange`
- * `HotBunnies::Channel`
+ * `MarchHare::Exchange`
+ * `MarchHare::Channel`
 
 ## What to Read Next
 

@@ -1,26 +1,26 @@
 ---
-title: "Getting Started with RabbitMQ on JRuby using Hot Bunnies"
+title: "Getting Started with RabbitMQ on JRuby using March Hare"
 layout: article
 ---
 
 ## About this guide
 
-This guide is a quick tutorial that helps you to get started with RabbitMQ and [Hot Bunnies](http://github.com/ruby-amqp/hot_bunnies).
+This guide is a quick tutorial that helps you to get started with RabbitMQ and [March Hare](http://github.com/ruby-amqp/march_hare).
 It should take about 20 minutes to read and study the provided code examples. This guide covers:
 
  * Installing RabbitMQ, a mature popular messaging broker server.
- * Installing Hot Bunnies via [Rubygems](http://rubygems.org) and [Bundler](http://gembundler.com).
+ * Installing March Hare via [Rubygems](http://rubygems.org) and [Bundler](http://gembundler.com).
  * Running a "Hello, world" messaging example that is a simple demonstration of 1:1 communication.
  * Creating a "Twitter-like" publish/subscribe example with one publisher and four subscribers that demonstrates 1:n communication.
  * Creating a topic routing example with two publishers and eight subscribers showcasing n:m communication when subscribers only receive messages that they are interested in.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a> (including images and stylesheets).
-The source is available [on GitHub](https://github.com/ruby-amqp/hotbunnies.info).
+The source is available [on GitHub](https://github.com/ruby-amqp/rubymarchhare.info).
 
 
-## Which versions of Hot Bunnies does this guide cover?
+## Which versions of March Hare does this guide cover?
 
-This guide covers Hot Bunnies 2.0, including preview releases.
+This guide covers March Hare 2.0, including preview releases.
 
 ## Installing RabbitMQ
 
@@ -38,24 +38,24 @@ On Debian and Ubuntu, you can either [download the RabbitMQ .deb package](http:/
 For RPM-based distributions like RedHat or CentOS, the RabbitMQ team provides an [RPM package](http://www.rabbitmq.com/install.html#rpm).
 
 <div class="alert alert-error"><strong>Note:</strong> The RabbitMQ packages that ship with Ubuntu versions earlier than 11.10
-are outdated and <strong>will not work with Hot Bunnies</strong> (you will need at least RabbitMQ v2.0 for use with this guide).</div>
+are outdated and <strong>will not work with March Hare</strong> (you will need at least RabbitMQ v2.0 for use with this guide).</div>
 
-## Installing Hot Bunnies
+## Installing March Hare
 
 ### Make sure that you have Ruby and [Rubygems](http://docs.rubygems.org/read/chapter/3) installed
 
 This guide assumes that you have JRuby 1.7+ installed.
 
-### You can use Rubygems to install Hot Bunnies
+### You can use Rubygems to install March Hare
 
-    gem install hot_bunnies
+    gem install march_hare
 
-### Adding Hot Bunnies as a dependency with Bundler
+### Adding March Hare as a dependency with Bundler
 
 ``` ruby
 source "https://rubygems.org"
 
-gem "hot_bunnies", "~> 2.0.0.pre1"
+gem "march_hare", "~> 2.0.0.pre1"
 ```
 
 ### Verifying your installation
@@ -64,9 +64,9 @@ Verify your installation with a quick irb session:
 
 ```
 irb -rubygems
-:001 > require "hot_bunnies"
+:001 > require "march_hare"
 => true
-:002 > HotBunnies::VERSION
+:002 > MarchHare::VERSION
 => "2.0.0.pre1"
 ```
 
@@ -76,12 +76,12 @@ Let us begin with the classic "Hello, world" example. First, here is the code:
 
 ``` ruby
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch = conn.create_channel
-q  = ch.queue("hot_bunnies.examples.hello_world", :auto_delete => true)
+q  = ch.queue("march_hare.examples.hello_world", :auto_delete => true)
 
 c  = q.subscribe do |metadata, payload|
   puts "Received #{payload}"
@@ -99,13 +99,13 @@ This example demonstrates a very common communication scenario: *application A* 
 
 ``` ruby
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 ```
 
-is the simplest way to load Hot Bunnies if you have installed it with RubyGems, but remember that you can omit the rubygems line if your environment does not need it. The following piece of code
+is the simplest way to load March Hare if you have installed it with RubyGems, but remember that you can omit the rubygems line if your environment does not need it. The following piece of code
 
 ``` ruby
-conn = HotBunnies.connect
+conn = MarchHare.connect
 ```
 
 connects to RabbitMQ running on localhost, with the default port (5672), username (guest), password (guest) and virtual host ('/').
@@ -118,13 +118,13 @@ ch = conn.create_channel
 
 opens a new _channel_. AMQP 0.9.1 is a multi-channeled protocol that uses channels to multiplex a TCP connection.
 
-Channels are opened on a connection. `HotBunnies::Session#create_channel` will return only when Hot Bunnies
+Channels are opened on a connection. `MarchHare::Session#create_channel` will return only when March Hare
 receives a confirmation that the channel is open from RabbitMQ.
 
 This line
 
 ``` ruby
-q  = ch.queue("hot_bunnies.examples.hello_world", :auto_delete => true)
+q  = ch.queue("march_hare.examples.hello_world", :auto_delete => true)
 ```
 
 declares a **queue** on the channel that we have just opened. Consumer applications get messages from queues. We declared this queue with
@@ -146,7 +146,7 @@ c = q.subscribe do |delivery_info, metadata, payload|
 end
 ```
 
-`HotBunnies::Queue#subscribe` takes a block that will be called every time a message arrives. This will happen in a thread pool, so `HotBunnies::Queue#subscribe`
+`MarchHare::Queue#subscribe` takes a block that will be called every time a message arrives. This will happen in a thread pool, so `MarchHare::Queue#subscribe`
 does not block the thread that invokes it. It returns a **consumer**, a message delivery subscription that can be cancelled.
 
 Finally, we publish our message
@@ -176,12 +176,12 @@ follow the official NBA account on Blabbr to get updates about what is happening
 
 ``` ruby
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch  = conn.create_channel
-x   = ch.fanout("hot_bunnies.nba.scores")
+x   = ch.fanout("march_hare.nba.scores")
 
 ch.queue("joe",   :auto_delete => true).bind(x).subscribe do |meta, payload|
   puts "#{payload} => joe"
@@ -211,7 +211,7 @@ In this example, opening a channel is no different to opening a channel in the p
 x   = ch.fanout("nba.scores")
 ```
 
-The exchange that we declare above using `HotBunnies::Channel#fanout` is a **fanout exchange**.
+The exchange that we declare above using `MarchHare::Channel#fanout` is a **fanout exchange**.
 A fanout exchange delivers messages to all of the queues that are bound to it: exactly what we want in the case of Blabbr!
 
 This piece of code
@@ -223,7 +223,7 @@ end
 ```
 
 is similar to the subscription code that we used for message delivery previously,
-but what does that `HotBunnies::Queue#bind` method do? It sets up a binding between the queue and
+but what does that `MarchHare::Queue#bind` method do? It sets up a binding between the queue and
 the exchange that you pass to it. We need to do this to make sure that our fanout exchange
 routes messages to the queues of any subscribed followers.
 
@@ -232,7 +232,7 @@ x.publish("BOS 101, NYK 89")
 x.publish("ORL 85, ALT 88")
 ```
 
-publishes two messages using `HotBunnies::Exchange#publish`. Blabbr members use a fanout exchange for
+publishes two messages using `MarchHare::Exchange#publish`. Blabbr members use a fanout exchange for
 publishing, so there is no need to specify a message routing key because every queue that is
 bound to the exchange will get its own copy of all messages, regardless of the queue name and
 routing key used.
@@ -263,9 +263,9 @@ Here is the code:
 
 ``` ruby
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
-connection = HotBunnies.connect
+connection = MarchHare.connect
 
 ch  = connection.create_channel
 # topic exchange name can be any string
@@ -323,7 +323,7 @@ ch.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").su
   puts "An update for South America: #{payload}, routing key is #{metadata.routing_key}"
 end
 ```
-Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `HotBunnies::Queue#bind` method.  This means that only messages with a routing key matching "americas.south.#" will be routed to that queue. A routing pattern consists of several words separated by dots, in a similar way to URI path segments joined by slashes. Here are a few examples:
+Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `MarchHare::Queue#bind` method.  This means that only messages with a routing key matching "americas.south.#" will be routed to that queue. A routing pattern consists of several words separated by dots, in a similar way to URI path segments joined by slashes. Here are a few examples:
 
  * asia.southeast.thailand.bangkok
  * sports.basketball
@@ -357,7 +357,7 @@ A (very simplistic) diagram to demonstrate topic exchange in action:
 ![Weathr Data Flow](https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/003_weathr_example_routing.png)
 
 
-As in the previous examples, the block that we pass to `HotBunnies::Queue#subscribe` takes multiple arguments:
+As in the previous examples, the block that we pass to `MarchHare::Queue#subscribe` takes multiple arguments:
 **delivery information**, **message metadata** (properties) and **message body** (often called the **payload**).
 Long story short, the metadata parameter lets you access metadata associated with the message. Some examples of message metadata
 attributes are:
@@ -395,7 +395,7 @@ The name of the server-named queue is generated by the broker and sent back to t
 
 ## Wrapping up
 
-This is the end of the tutorial. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and Hot Bunnies. This is only the tip of the iceberg.
+This is the end of the tutorial. Congratulations! You have learned quite a bit about both AMQP 0.9.1 and March Hare. This is only the tip of the iceberg.
 RabbitMQ has many more features to offer:
 
  * Reliable delivery of messages
@@ -405,7 +405,7 @@ RabbitMQ has many more features to offer:
  * Message metadata attributes
  * High Availability features
 
-and so on. Other guides explain these features in depth, as well as use cases for them. To stay up to date with Hot Bunnies development, [follow @rubyamqp on Twitter](http://twitter.com/rubyamqp)
+and so on. Other guides explain these features in depth, as well as use cases for them. To stay up to date with March Hare development, [follow @rubyamqp on Twitter](http://twitter.com/rubyamqp)
 and [join our mailing list](http://groups.google.com/group/ruby-amqp).
 
 ## What to read next
@@ -416,8 +416,8 @@ fault-tolerant message processing with acknowledgements and error handling.
 We recommend that you read the following guides next, if possible, in this order:
 
  * [AMQP 0.9.1 Model Explained](http://www.rabbitmq.com/tutorials/amqp-concepts.html). A simple 2 page long introduction to the AMQP Model concepts and features. Understanding the AMQP 0.9.1 Model
-   will make a lot of other documentation, both for Hot Bunnies and RabbitMQ itself, easier to follow. With this guide, you don't have to waste hours of time reading the whole specification.
- * [Connecting to the broker](/articles/connecting.html). This guide explains how to connect to an RabbitMQ and how to integrate Hot Bunnies into standalone and Web applications.
+   will make a lot of other documentation, both for March Hare and RabbitMQ itself, easier to follow. With this guide, you don't have to waste hours of time reading the whole specification.
+ * [Connecting to the broker](/articles/connecting.html). This guide explains how to connect to an RabbitMQ and how to integrate March Hare into standalone and Web applications.
  * [Queues and Consumers](/articles/queues.html). This guide focuses on features that consumer applications use heavily.
  * [Exchanges and Publishers](/articles/exchanges.html). This guide focuses on features that producer applications use heavily.
  * [Error Handling and Recovery](/articles/error_handling.html). This guide explains how to handle protocol errors, network failures and other things that may go wrong in real world projects.
@@ -425,6 +425,6 @@ We recommend that you read the following guides next, if possible, in this order
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [March Hare mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.

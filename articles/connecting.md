@@ -5,10 +5,10 @@ layout: article
 
 ## About this guide
 
-This guide covers connection to RabbitMQ with HotBunnies, connection error handling, authentication failure handling and related issues.
+This guide covers connection to RabbitMQ with MarchHare, connection error handling, authentication failure handling and related issues.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 
 ## What version of Hot Bunnies does this guide cover??
@@ -36,14 +36,14 @@ Map options that Bunny will recognize are
  * `:vhost` or `virtual_host`
  * `:heartbeat` or `:heartbeat_interval`, in seconds, default is 0 (no heartbeats). `:server` means "use the value from RabbitMQ config"
 
-To connect to RabbitMQ with a map of parameters, pass them to `HotBunnies.connect`. The connection
+To connect to RabbitMQ with a map of parameters, pass them to `MarchHare.connect`. The connection
 will be established immediately:
 
 ``` ruby
-conn = HotBunnies.connect(:host => "localhost", :vhost => "myapp.production", :user => "bunny", :password => "t0ps3kret")
+conn = MarchHare.connect(:host => "localhost", :vhost => "myapp.production", :user => "bunny", :password => "t0ps3kret")
 ```
 
-`HotBunnies.connect` returns a connection instance that is used to open channels. More about channels later in this guide.
+`MarchHare.connect` returns a connection instance that is used to open channels. More about channels later in this guide.
 
 #### Default parameters
 
@@ -67,7 +67,7 @@ Default connection parameters are
 It is also possible to specify connection parameters as a URI string:
 
 ``` ruby
-HotBunnies.connect(:uri => "amqp://guest:guest@vm188.dev.megacorp.com/profitd.qa")
+MarchHare.connect(:uri => "amqp://guest:guest@vm188.dev.megacorp.com/profitd.qa")
 ```
 
 Unfortunately, there is no URI standard for AMQP URIs, so while several schemes used in the wild share the same basic idea, they differ in some details.
@@ -91,7 +91,7 @@ The vhost is obtained from the first segment of the path, with the leading slash
 
 If a connection does not succeed, Bunny will raise one of the following exceptions:
 
- * `HotBunnies::PossibleAuthenticationFailureException` indicates an authentication issue or that connection to RabbitMQ was closed before successfully finishing connection negotiation
+ * `MarchHare::PossibleAuthenticationFailureException` indicates an authentication issue or that connection to RabbitMQ was closed before successfully finishing connection negotiation
  * `java.net.UnknownHostException` indicates that the host is misconfigured or does not resolve (e.g. due to a DNS issue)
  * `java.net.ConnectException` indicates that RabbitMQ is not running on the target host or it binds to a different port
 
@@ -105,7 +105,7 @@ to use. In this case, connect using the connection URI. Accessing environment va
 with Hot Bunnies is not any different from any other Ruby code:
 
 ``` ruby
-HotBunnies.connect(:uri => ENV["RABBITMQ_URL"])
+MarchHare.connect(:uri => ENV["RABBITMQ_URL"])
 ```
 
 
@@ -115,10 +115,10 @@ Some applications need multiple connections to RabbitMQ. However, it is undesira
 doing so consumes system resources and makes it more difficult to configure firewalls. AMQP 0-9-1 connections are multiplexed with channels that can
 be thought of as "lightweight connections that share a single TCP connection".
 
-To open a channel, use the `HotBunnies::Session#create_channel` method:
+To open a channel, use the `MarchHare::Session#create_channel` method:
 
 ``` ruby
-conn = HotBunnies.connect
+conn = MarchHare.connect
 ch   = conn.create_channel
 ```
 
@@ -128,7 +128,7 @@ a new channel for each published message, for example.
 
 ## Closing Channels
 
-To close a channel, use the `HotBunnies::Channel#close` method. A closed channel
+To close a channel, use the `MarchHare::Channel#close` method. A closed channel
 can no longer be used.
 
 ``` ruby
@@ -152,7 +152,7 @@ Currently Bunny does not have integration points for Rails (e.g. a rail tie).
 
 ## Disconnecting
 
-To close a connection, use the `HotBunnies::Session#close` function. This will automatically
+To close a connection, use the `MarchHare::Session#close` function. This will automatically
 close all channels of that connection first:
 
 ``` ruby

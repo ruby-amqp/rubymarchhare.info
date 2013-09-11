@@ -9,7 +9,7 @@ This guide covers everything related to RabbitMQ queues, common usage scenarios 
 typical operations using Hot Bunnies.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
-(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/hotbunnies.info).
+(including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 ## What version of Hot Bunnies does this guide cover?
 
@@ -64,7 +64,7 @@ this guide.
 
 Applications may pick queue names or ask the broker to generate a name for them.
 
-To declare a queue with a particular name, for example, "images.resize", use the `HotBunnies::Channel#queue` method:
+To declare a queue with a particular name, for example, "images.resize", use the `MarchHare::Channel#queue` method:
 
 ``` ruby
 ch.queue("images.resize", :exclusive => false, :auto_delete => true)
@@ -73,9 +73,9 @@ ch.queue("images.resize", :exclusive => false, :auto_delete => true)
 The same example in context:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q    = ch.queue("images.resize", :exclusive => false, :auto_delete => true)
@@ -85,7 +85,7 @@ q    = ch.queue("images.resize", :exclusive => false, :auto_delete => true)
 ### Server-named queues
 
 To ask an AMQP broker to generate a unique queue name for you, pass an *empty string* as the queue name argument. A generated queue name (like *amq.gen-JZ46KgZEOZWg-pAScMhhig*)
-will be assigned to the `HotBunnies::Queue` instance that the method returns:
+will be assigned to the `MarchHare::Queue` instance that the method returns:
 
 ``` ruby
 ch.queue("", :exclusive => true)
@@ -94,9 +94,9 @@ ch.queue("", :exclusive => true)
 The same example in context:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true)
@@ -112,7 +112,7 @@ result in a channel-level exception with reply code `403 (ACCESS_REFUSED)` and a
 
     ACCESS_REFUSED - queue name 'amq.queue' contains reserved prefix 'amq.*'
     
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `HotBunnies::ChannelAlreadyClosed` error.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `MarchHare::ChannelAlreadyClosed` error.
 
 ### Queue Re-Declaration With Different Attributes
 
@@ -121,7 +121,7 @@ will be raised. The reply text will be similar to this:
 
     PRECONDITION_FAILED - parameters for queue 'bunny.examples.channel_exception' in vhost '/' not equivalent
 
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `HotBunnies::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `MarchHare::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
 
 ## Queue Life-cycle Patterns
 
@@ -164,9 +164,9 @@ ch.queue("images.resize", :durable => true, :auto_delete => false)
 The same example in context:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q    = ch.queue("images.resize", :durable => true, :auto_delete => false)
@@ -184,9 +184,9 @@ ch.queue("", :exclusive => true)
 The same example in context:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q    = ch.queue("", :exclusive => true)
@@ -203,7 +203,7 @@ Exclusive queues will be deleted when the connection they were declared on is cl
 In order to receive messages, a queue needs to be bound to at least one exchange. Most of the time binding is explcit (done by applications). **Please note:** All queues are automatically bound to the default unnamed RabbitMQ direct exchange with a routing key that is the same as the queue name (see [Exchanges and Publishing](/articles/exchanges.html) guide for more details).
 
 To bind a queue to an exchange,
-use the `HotBunnies::Queue#bind` method:
+use the `MarchHare::Queue#bind` method:
 
 ``` ruby
 q = ch.queue("", :exclusive => true)
@@ -215,9 +215,9 @@ q.bind(x)
 The same example in context:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q = ch.queue("", :exclusive => true)
@@ -229,7 +229,7 @@ q.bind(x)
 
 ## Subscribing to receive messages ("push API")
 
-To request that the server starts a *consumer* (queue subscription) to enable an application to process messages as they arrive in a queue, one uses the `HotBunnies::Queue#subscribe` or `HotBunnies::Queue#subscribe_with` methods.
+To request that the server starts a *consumer* (queue subscription) to enable an application to process messages as they arrive in a queue, one uses the `MarchHare::Queue#subscribe` or `MarchHare::Queue#subscribe_with` methods.
 
 Consumers last as long as the channel that they were declared on,
 or until the client cancels them (unsubscribes).
@@ -242,7 +242,7 @@ Consumers have a number of events that they can react to:
  
 #### Consumer Tags
 
-Consumers are identified by unique strings called *consumer tags*. The `HotBunnies::Queue#subscribe` method can take a `:consumer_tag` argument or let RabbitMQ generate one
+Consumers are identified by unique strings called *consumer tags*. The `MarchHare::Queue#subscribe` method can take a `:consumer_tag` argument or let RabbitMQ generate one
 
 ```ruby
 q.subscribe(:consumer_tag => "unique_consumer_001")
@@ -266,9 +266,9 @@ end
 The same example in context:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 
 ch   = conn.create_channel
 q = ch.queue("", :exclusive => true)
@@ -293,9 +293,9 @@ metadata.delivery_tag
 #### Blocking or Non-Blocking Behavior
 
 The subscribe method will not block the calling thread by default. If you want to block the caller, pass `:block => true` to
-`HotBunnies::Queue#subscribe`. In Hot Bunnies, network activity and dispatch of delivered messages
+`MarchHare::Queue#subscribe`. In Hot Bunnies, network activity and dispatch of delivered messages
 to consumers happens in separate threads that the library maintains internally, so it does not have to
-block the thread that calls `HotBunnies::Queue#subscribe`. However, it may be convenient to do so
+block the thread that calls `MarchHare::Queue#subscribe`. However, it may be convenient to do so
 in long-running consumer applications.
 
 ### Accessing Message Delivery Information
@@ -335,9 +335,9 @@ metadata.type
 An example to demonstrate how to access some of those attributes:
 
 ``` ruby
-require 'hot_bunnies'
+require 'march_hare'
 
-connection = HotBunnies.connect
+connection = MarchHare.connect
 
 ch = connection.create_channel
 q  = connection.queue('', :exclusive => true)
@@ -362,7 +362,7 @@ q.subscribe do |metadata, payload|
   puts metadata.reply_to       # => "a.sender"
   puts metadata.correlation_id # => "r-1"
   puts metadata.message_id     # => "m-1"
-  puts metadata.app_id         # => "hot_bunnies.example"
+  puts metadata.app_id         # => "march_hare.example"
 
   puts metadata.consumer_tag # => a string
   puts metadata.redelivered? # => false
@@ -375,7 +375,7 @@ end
 x.publish("hello",
           :routing_key => "#{q.name}",
           :properties => {
-            :app_id       => "hot_bunnies.example",
+            :app_id       => "march_hare.example",
             :priority     => 8,
             :content_type => "application/octet-stream"
             :type         => "kinda.checkin",
@@ -434,7 +434,7 @@ Consumers can request exclusive access to the queue (meaning only this consumer 
 to be temporarily accessible by just one application (or thread, or process). If the application employing the exclusive consumer crashes or loses the
 TCP connection to the broker, then the channel is closed and the exclusive consumer is cancelled.
 
-To exclusively receive messages from the queue, pass the `:exclusive` option to `HotBunnies::Queue#subscribe`:
+To exclusively receive messages from the queue, pass the `:exclusive` option to `MarchHare::Queue#subscribe`:
 
 ``` ruby
 q = ch.queue("")
@@ -446,7 +446,7 @@ end
 Attempts to register another consumer on a queue that already has an exclusive consumer will
 result in a channel-level exception with reply code `403 (ACCESS_REFUSED)` and a reply message similar to this: 
 
-    ACCESS_REFUSED - queue 'queue name' in vhost '/' in exclusive use (HotBunnies::AccessRefused)
+    ACCESS_REFUSED - queue 'queue name' in vhost '/' in exclusive use (MarchHare::AccessRefused)
 
 It is not possible to register an exclusive consumer on a queue that already has consumers.
 
@@ -460,12 +460,12 @@ guide). If prefetch values are equal for all consumers, each consumer will get a
 
 ### Cancelling a Consumer
 
-Sometimes there may be a requirement to cancel a consumer directly without deleting the queue that it is subscribed to. In AMQP 0.9.1 parlance, "cancelling a consumer" is often referred to as "unsubscribing". The `HotBunnies::Consumer#cancel` method can be used to do this. Here is a usage example :
+Sometimes there may be a requirement to cancel a consumer directly without deleting the queue that it is subscribed to. In AMQP 0.9.1 parlance, "cancelling a consumer" is often referred to as "unsubscribing". The `MarchHare::Consumer#cancel` method can be used to do this. Here is a usage example :
 
 ``` ruby
-require 'hot_bunnies'
+require 'march_hare'
 
-connection = HotBunnies.connect
+connection = MarchHare.connect
 ch         = connection.create_channel
 
 q          = ch.queue("", :auto_delete => true, :durable => false)
@@ -486,7 +486,7 @@ puts "Consumer: #{cancel_ok.consumer_tag} cancelled"
 ch.close
 ```
 
-In the above example, you can see that the `HotBunnies::Consumer#cancel` method returns a *cancel_ok* reply from RabbitMQ which contains the consumer tag of the cancelled consumer.
+In the above example, you can see that the `MarchHare::Consumer#cancel` method returns a *cancel_ok* reply from RabbitMQ which contains the consumer tag of the cancelled consumer.
 
 Once a consumer is cancelled, messages will
 no longer be delivered to it, however, due to the asynchronous nature of the protocol, it is possible for "in flight" messages to be received
@@ -512,7 +512,7 @@ processing and storing it into some persistent data store).
 If a consumer dies without sending an acknowledgement, the AMQP broker will redeliver it to another consumer, or, if none are available at the time,
 the broker will wait until at least one consumer is registered for the same queue before attempting redelivery.
 
-The acknowledgement model is chosen when a new consumer is registered for a queue. By default, `HotBunnies::Queue#subscribe` will use the *automatic* model.
+The acknowledgement model is chosen when a new consumer is registered for a queue. By default, `MarchHare::Queue#subscribe` will use the *automatic* model.
 To switch to the *explicit* model, the `:ack` option should be used:
 
 ``` ruby
@@ -528,14 +528,14 @@ To demonstrate how redelivery works, let us have a look at the following code ex
 # encoding: utf-8
 
 require "rubygems"
-require "hot_bunnies"
+require "march_hare"
 
 puts "=> Subscribing for messages using explicit acknowledgements model"
 puts
 
-connection1 = HotBunnies.connect
-connection2 = HotBunnies.connect
-connection3 = HotBunnies.connect
+connection1 = MarchHare.connect
+connection2 = MarchHare.connect
+connection3 = MarchHare.connect
 
 ch1 = connection1.create_channel
 ch1.prefetch = 1
@@ -547,7 +547,7 @@ ch3 = connection3.create_channel
 ch3.prefetch = 1
 
 x   = ch3.fanout("amq.fanout")
-q1  = ch1.queue("hot_bunnies.examples.acknowledgements.explicit", :auto_delete => false)
+q1  = ch1.queue("march_hare.examples.acknowledgements.explicit", :auto_delete => false)
 q1.purge
 
 q1.bind(x).subscribe(:manual_ack => true) do |metadata, payload|
@@ -556,7 +556,7 @@ q1.bind(x).subscribe(:manual_ack => true) do |metadata, payload|
 
   # acknowledge some messages, they will be removed from the queue
   if rand > 0.5
-    # FYI: there is a shortcut, HotBunnies::Channel.ack
+    # FYI: there is a shortcut, MarchHare::Channel.ack
     ch1.acknowledge(metadata.delivery_tag, false)
     puts "[consumer1] Got message ##{metadata.headers['i']}, redelivered?: #{metadata.redelivered?}, ack-ed"
   else
@@ -566,7 +566,7 @@ q1.bind(x).subscribe(:manual_ack => true) do |metadata, payload|
   end
 end
 
-q2   = ch2.queue("hot_bunnies.examples.acknowledgements.explicit", :auto_delete => false)
+q2   = ch2.queue("march_hare.examples.acknowledgements.explicit", :auto_delete => false)
 q2.bind(x).subscribe(:manual_ack => true) do |metadata, payload|
   # do some work
   sleep(0.2)
@@ -653,14 +653,14 @@ and then, once consumer #1 had "crashed", the messages were immediately redelive
 [consumer2] Got message #6, redelivered?: true, ack-ed
 ```
 
-To acknowledge a message use `HotBunnies::Channel#acknowledge`:
+To acknowledge a message use `MarchHare::Channel#acknowledge`:
 
 ```
-# FYI: there is a shortcut, HotBunnies::Channel.ack
+# FYI: there is a shortcut, MarchHare::Channel.ack
 ch1.acknowledge(metadata.delivery_tag, false)
 ```
 
-`HotBunnies::Channel#acknowledge` takes two arguments: a message *delivery tag* and a flag that indicates whether or not we want to acknowledge multiple messages at once.
+`MarchHare::Channel#acknowledge` takes two arguments: a message *delivery tag* and a flag that indicates whether or not we want to acknowledge multiple messages at once.
 Delivery tag is simply a channel-specific increasing number that the server uses to identify deliveries.
 
 When acknowledging multiple messages at once, the delivery tag is treated as "up to and including". For example, if delivery tag = 5 that would mean "acknowledge messages 1, 2, 3, 4 and 5".
@@ -678,14 +678,14 @@ being raised. The reply text will be similar to this:
 When a consumer application receives a message, processing of that message may or may not succeed. An application can indicate to the broker that message
 processing has failed (or cannot be accomplished at the time) by rejecting a message. When rejecting a message, an application can ask the broker to discard or requeue it.
 
-To reject a message use the `HotBunnies::Channel#reject` method:
+To reject a message use the `MarchHare::Channel#reject` method:
 
 ``` ruby
 ch1.reject(metadata.delivery_tag)
 ```
 
 in the example above, messages are rejected without requeueing (broker will simply discard them). To requeue a rejected message, use the second argument
-that `HotBunnies::Queue#reject` takes:
+that `MarchHare::Queue#reject` takes:
 
 ``` ruby
 ch1.reject(metadata.delivery_tag, true)
@@ -716,7 +716,7 @@ that the AMQP broker has to hold in memory at once, applications can be designed
 receives 5000 messages and then acknowledges them all at once. The broker will not send message 5001 unless it receives an acknowledgement.
 
 In AMQP parlance this is known as *QoS* or *message prefetching*. Prefetching is configured on a per-channel basis.
-To configure prefetching use the `HotBunnies::Channel#prefetch` method like so:
+To configure prefetching use the `MarchHare::Channel#prefetch` method like so:
 
 ``` ruby
 ch1 = connection1.create_channel
@@ -757,7 +757,7 @@ Publisher Confirms RabbitMQ extension.
 ## Fetching messages when needed ("pull API")
 
 The AMQP 0.9.1 specification also provides a way for applications to fetch (pull) messages from the queue only when necessary.
-For that, use the `HotBunnies::Queue#pop` function which returns a triple of `[metadata, payload]`:
+For that, use the `MarchHare::Queue#pop` function which returns a triple of `[metadata, payload]`:
 
 ``` ruby
 metadata, payload = q.pop
@@ -766,9 +766,9 @@ metadata, payload = q.pop
 The same example in context:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn  = HotBunnies.connect
+conn  = MarchHare.connect
 chann = conn.create_channel
 
 q = chann.queue("test1")
@@ -791,7 +791,7 @@ If the queue is empty, then `[nil, nil]` will be returned.
 
 ## Unbinding Queues From Exchanges
 
-To unbind a queue from an exchange use the `HotBunnies::Queue#unbind` function:
+To unbind a queue from an exchange use the `MarchHare::Queue#unbind` function:
 
 ``` ruby
 q.unbind(x)
@@ -805,15 +805,15 @@ result in a channel-level exception.
 It is possible to query the number of messages in a queue and the number of consumers it has by declaring the queue
 with the `:passive` attribute set.
 The response (`queue.declare-ok` AMQP method) will include the number of messages along with
-the number of consumers. However, Hot Bunnies provides a convenience method, `HotBunnies::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
+the number of consumers. However, Hot Bunnies provides a convenience method, `MarchHare::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
 
- * `HotBunnies::Queue#message_count`
- * `HotBunnies::Queue#consumer_count`
+ * `MarchHare::Queue#message_count`
+ * `MarchHare::Queue#consumer_count`
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 ch   = conn.channel
 
 q = ch.queue("testq")
@@ -829,12 +829,12 @@ puts q.consumer_count
 
 ## Purging queues
 
-It is possible to purge a queue (remove all of the messages from it) using the `HotBunnies::Queue#purge` method:
+It is possible to purge a queue (remove all of the messages from it) using the `MarchHare::Queue#purge` method:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 ch   = conn.channel
 
 q = ch.queue("")
@@ -856,12 +856,12 @@ If the *exclusive* flag is set to true then the queue will be deleted when the c
 
 If the *auto_delete* flag is set to true then the queue will be deleted when there are no more consumers subscribed to it. The queue will remain in existence until at least one consumer accesses it.
 
-To delete a queue directly, use the `HotBunnies::Queue#delete` method:
+To delete a queue directly, use the `MarchHare::Queue#delete` method:
 
 ``` ruby
-require "hot_bunnies"
+require "march_hare"
 
-conn = HotBunnies.connect
+conn = MarchHare.connect
 ch   = conn.channel
 
 q = ch.queue("")
@@ -890,11 +890,11 @@ as needed. Consumers are identified by consumer tags.
 
 For messages to be routed to queues, queues need to be bound to exchanges.
 
-Most methods related to queues are found in three HotBunnies namespaces:
+Most methods related to queues are found in three MarchHare namespaces:
 
- * `HotBunnies::Channel`
- * `HotBunnies::Queue`
- * `HotBunnies::Consumer`
+ * `MarchHare::Channel`
+ * `MarchHare::Queue`
+ * `MarchHare::Consumer`
 
 
 ## What to Read Next
