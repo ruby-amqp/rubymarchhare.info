@@ -1,11 +1,11 @@
 ---
-title: "Working with RabbitMQ extensions from Ruby with Hot Bunnies"
+title: "Working with RabbitMQ extensions from Ruby with March Hare"
 layout: article
 ---
 
 ## About This Guide
 
-Hot Bunnies supports all [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html):
+March Hare supports all [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq.com/extensions.html):
 
   * [Publisher confirms](http://www.rabbitmq.com/confirms.html)
   * [Negative acknowledgements](http://www.rabbitmq.com/nack.html) (basic.nack)
@@ -19,19 +19,19 @@ Hot Bunnies supports all [RabbitMQ extensions to AMQP 0.9.1](http://www.rabbitmq
   * [Dead Letter Exchanges](http://www.rabbitmq.com/dlx.html)
   * [Validated user_id](http://www.rabbitmq.com/validated-user-id.html)
 
-This guide briefly describes how to use these extensions with Hot Bunnies.
+This guide briefly describes how to use these extensions with March Hare.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 (including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
-## What version of Hot Bunnies does this guide cover??
+## What version of March Hare does this guide cover??
 
-This guide covers Hot Bunnies 2.0.
+This guide covers March Hare 2.0.
 
 
 ## Enabling RabbitMQ Extensions
 
-You don't need to require any additional files to make Hot Bunnies support RabbitMQ extensions.
+You don't need to require any additional files to make March Hare support RabbitMQ extensions.
 The support is built into the core.
 
 ## Per-queue Message Time-to-Live
@@ -41,7 +41,7 @@ a message published to a queue can live before it is discarded.
 A message that has been in the queue for longer than the configured TTL is said to be dead. Dead messages will not be delivered
 to consumers and cannot be fetched using the *basic.get* operation (`MarchHare::Queue#pop`).
 
-Message TTL is specified using the *x-message-ttl* argument on declaration. With Hot Bunnies, you pass it to `MarchHare::Queue#initialize` or `MarchHare::Channel#queue`:
+Message TTL is specified using the *x-message-ttl* argument on declaration. With March Hare, you pass it to `MarchHare::Queue#initialize` or `MarchHare::Channel#queue`:
 
 ``` ruby
 # 1000 milliseconds
@@ -111,7 +111,7 @@ a publisher and a RabbitMQ node instead of a consumer and a RabbitMQ node.
 
 ![RabbitMQ Publisher Confirms](https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/007_rabbitmq_publisher_confirms.png)
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
 To use publisher confirms, first put the channel into confirmation mode using the `MarchHare::Channel#confirm_select` method:
 
@@ -177,9 +177,9 @@ discard them or requeue them. Unfortunately, basic.reject provides no support fo
 
 To solve this, RabbitMQ supports the basic.nack method that provides all of the functionality of basic.reject whilst also allowing for bulk processing of messages.
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
-Hot Bunnies exposes `basic.nack` via the `MarchHare::Channel#nack` method, similar to `MarchHare::Channel#ack` and `MarchHare::Channel#reject`:
+March Hare exposes `basic.nack` via the `MarchHare::Channel#nack` method, similar to `MarchHare::Channel#ack` and `MarchHare::Channel#reject`:
 
 ``` ruby
 # nack multiple messages at once
@@ -234,7 +234,7 @@ See also rabbitmq.com section on [basic.nack](http://www.rabbitmq.com/nack.html)
 The Alternate Exchanges RabbitMQ extension to AMQP 0.9.1 allows developers to define "fallback" exchanges
 where unroutable messages will be sent.
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
 To specify exchange A as an alternate exchange to exchange B, specify the 'alternate-exchange' argument on declaration of B:
 
@@ -286,9 +286,9 @@ See also rabbitmq.com section on [Alternate Exchanges](http://www.rabbitmq.com/a
 RabbitMQ supports [exchange-to-exchange bindings](http://www.rabbitmq.com/e2e.html) to allow even richer routing topologies as well as a backbone for
 some other features (e.g. tracing).
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
-Hot Bunnies 0.9 exposes it via `MarchHare::Exchange#bind` which is semantically the same as `MarchHare::Queue#bind` but binds
+March Hare 0.9 exposes it via `MarchHare::Exchange#bind` which is semantically the same as `MarchHare::Queue#bind` but binds
 two exchanges:
 
 ``` ruby
@@ -334,7 +334,7 @@ See also rabbitmq.com section on [Exchange-to-Exchange Bindings](http://www.rabb
 
 ## Consumer Cancellation Notifications
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
 When a consumer is cancelled via RabbitMQ management UI or because the queue has been deleted, the consumer receives
 a **cancellation notification**. To handle it, pass a proc as the `:on_cancellation` option to `MarchHare::Queue#subscribe`.
@@ -386,7 +386,7 @@ it will be deleted. *Unused* here means that the queue
  * is not redeclared
  * no message fetches happened (using `basic.get` AMQP 0.9.1 method, that is, `MarchHare::Queue#pop` in Bunny)
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
 Use the `"x-expires"` optional queue argument to set how long the queue will be allowed to be unused in milliseconds. After that time,
 the queue will be removed by RabbitMQ.
@@ -432,7 +432,7 @@ See also rabbitmq.com section on [Queue Leases](http://www.rabbitmq.com/ttl.html
 
 A TTL can be specified on a per-message basis, by setting the `:expiration` property when publishing.
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
 `MarchHare::Exchange#publish` recognizes the `:expiration` option that is message time-to-live (TTL) in milliseconds:
 
@@ -497,7 +497,7 @@ that lets clients have extra control over routing.
 The values associated with the `"CC"` and `"BCC"` header keys will be added to the routing key if they are present.
 If neither of those headers is present, this extension has no effect.
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
 To use sender-selected distribution, set the `"CC"` and `"BCC"` headers like you would any other header:
 
@@ -555,7 +555,7 @@ A message is dead-lettered when any of the following events occur:
 The message is rejected (basic.reject or basic.nack) with requeue=false; or
 The TTL for the message expires.
 
-### How To Use It With Hot Bunnies
+### How To Use It With March Hare
 
 Dead-letter Exchange is a feature that is used by specifying additional queue arguments:
 
@@ -611,9 +611,9 @@ See also rabbitmq.com section on [Dead Letter Exchange](http://www.rabbitmq.com/
 
 RabbitMQ provides a number of useful extensions to the AMQP 0.9.1 specification.
 
-Hot Bunnies has RabbitMQ extensions support built into the core. Some features are based on optional arguments
-for queues, exchanges or messages, and some are public Hot Bunnies API features. Any future argument-based extensions are likely to be
-useful with Hot Bunnies immediately, without any library modifications.
+March Hare has RabbitMQ extensions support built into the core. Some features are based on optional arguments
+for queues, exchanges or messages, and some are public March Hare API features. Any future argument-based extensions are likely to be
+useful with March Hare immediately, without any library modifications.
 
 ## What to Read Next
 
@@ -628,6 +628,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [March Hare mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
