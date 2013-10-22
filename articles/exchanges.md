@@ -6,15 +6,15 @@ layout: article
 ## About this guide
 
 This guide covers multiple topics related to RabbitMQ exchanges and message publishing,
-including common usage scenarios and how to accomplish typical operations using Hot Bunnies.
+including common usage scenarios and how to accomplish typical operations using March Hare.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 (including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 
-## What version of Hot Bunnies does this guide cover??
+## What version of March Hare does this guide cover??
 
-This guide covers Hot Bunnies 2.0.
+This guide covers March Hare 2.0.
 
 
 ## RabbitMQ Exchanges — Overview
@@ -290,7 +290,7 @@ The [Queues and Consumers](/articles/queues.html) guide provides more informatio
 AMQP 0.9.1 brokers must implement a direct exchange type and pre-declare two instances:
 
  * `amq.direct`
- * *""* exchange known as *default exchange* (unnamed, referred to as an empty string by many clients including Hot Bunnies)
+ * *""* exchange known as *default exchange* (unnamed, referred to as an empty string by many clients including March Hare)
 
 Applications can rely on those exchanges always being available to them. Each vhost has separate instances of those
 exchanges, they are *not shared across vhosts* for obvious reasons.
@@ -298,7 +298,7 @@ exchanges, they are *not shared across vhosts* for obvious reasons.
 
 ### Default exchange
 
-The default exchange is a direct exchange with no name (Hot Bunnies refers to it using an empty string) pre-declared by the broker. It has one special
+The default exchange is a direct exchange with no name (March Hare refers to it using an empty string) pre-declared by the broker. It has one special
 property that makes it very useful for simple applications, namely that *every queue is automatically bound to it with a routing key which is the same as the queue name*.
 
 For example, when you declare a queue with the name of "search.indexing.online", RabbitMQ will bind it to the default exchange using "search.indexing.online"
@@ -468,7 +468,7 @@ they want to receive, the use of topic exchanges should be considered. To name a
 
 ## Declaring/Instantiating Exchanges
 
-With Hot Bunnies, exchanges can be declared in two ways: by instantiating `MarchHare::Exchange` or by using a number of convenience methods on `MarchHare::Channel`:
+With March Hare, exchanges can be declared in two ways: by instantiating `MarchHare::Exchange` or by using a number of convenience methods on `MarchHare::Channel`:
 
   * `MarchHare::Channel#default_exchange`
   * `MarchHare::Channel#direct`
@@ -487,7 +487,7 @@ x.publish("some data")
 ```
 
 The method accepts message body and a number of message and delivery metadata options. Routing key can be blank (`""`) but never `nil`.
-The body needs to be a string. The message payload is completely opaque to the library and is not modified by Hot Bunnies or RabbitMQ in any way.
+The body needs to be a string. The message payload is completely opaque to the library and is not modified by March Hare or RabbitMQ in any way.
 
 ### Data serialization
 
@@ -635,7 +635,7 @@ identity is not validated and remains private.
 
 A commonly asked question about RabbitMQ clients is "how to execute a piece of code after a message is received".
 
-Message publishing with Hot Bunnies happens in several steps:
+Message publishing with March Hare happens in several steps:
 
  * `MarchHare::Exchange#publish` takes a payload and various metadata attributes
  * Resulting payload is staged for writing
@@ -648,7 +648,7 @@ As you can see, "when data is sent" is a complicated issue and while methods to 
 was received by the broker because it might have crashed while data was travelling down the wire.
 
 The only way to reliably know whether data was received by the broker or a peer application is to use message acknowledgements. This is how TCP works and this
-approach is proven to work at the enormous scale of the modern Internet. AMQP 0.9.1 fully embraces this fact and Hot Bunnies follows.
+approach is proven to work at the enormous scale of the modern Internet. AMQP 0.9.1 fully embraces this fact and March Hare follows.
 </div>
 
 In cases when you cannot afford to lose a single message, AMQP 0.9.1 applications can use one (or a combination of) the following protocol features:
@@ -658,7 +658,7 @@ In cases when you cannot afford to lose a single message, AMQP 0.9.1 application
  * Transactions (these introduce noticeable overhead and have a relatively narrow set of use cases)
 
 A more detailed overview of the pros and cons of each option can be found in a [blog post that introduces Publisher Confirms extension](http://bit.ly/rabbitmq-publisher-confirms)
-by the RabbitMQ team. The next sections of this guide will describe how the features above can be used with Hot Bunnies.
+by the RabbitMQ team. The next sections of this guide will describe how the features above can be used with March Hare.
 
 
 ### Publishing messages as mandatory
@@ -709,7 +709,7 @@ When a message is returned, the application that produced it can handle that mes
  * Publish it to a different destination
  * Log the event and discard the message
 
-Returned messages contain information about the exchange they were published to. Hot Bunnies associates
+Returned messages contain information about the exchange they were published to. March Hare associates
 returned message callbacks with consumers. To handle returned messages, use `MarchHare::Exchange#on_return`:
 
 ``` ruby
@@ -769,7 +769,7 @@ x.publish(data, :persistent => true)
 ### Publishing In Multi-threaded Environments
 
 <div class="alert alert-error">
-When using Hot Bunnies in multi-threaded environments, the rule of thumb is: avoid sharing channels across threads.
+When using March Hare in multi-threaded environments, the rule of thumb is: avoid sharing channels across threads.
 </div>
 
 In other words, publishers in your application that publish from separate threads should use their own channels. The
@@ -1011,7 +1011,7 @@ types.
 Messages have a set of standard properties (e.g. type, content type) and can carry an arbitrary map
 of headers.
 
-Most functions related to exchanges and publishing are found in two Hot Bunnies classes:
+Most functions related to exchanges and publishing are found in two March Hare classes:
 
  * `MarchHare::Exchange`
  * `MarchHare::Channel`
@@ -1033,6 +1033,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [March Hare mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
