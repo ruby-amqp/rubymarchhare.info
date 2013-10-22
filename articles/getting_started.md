@@ -109,20 +109,26 @@ c.cancel
 conn.close
 ```
 
-This example demonstrates a very common communication scenario: *application A* wants to publish a message that will end up in a queue that *application B* listens on. In this case, the queue name is "bunny.examples.hello_world". Let us go through the code step by step:
+This example demonstrates a very common communication scenario:
+*application A* wants to publish a message that will end up in a queue
+that *application B* listens on. In this case, the queue name is
+"bunny.examples.hello_world". Let us go through the code step by step:
 
 ``` ruby
 require "rubygems"
 require "march_hare"
 ```
 
-is the simplest way to load March Hare if you have installed it with RubyGems, but remember that you can omit the rubygems line if your environment does not need it. The following piece of code
+is the simplest way to load March Hare if you have installed it with
+RubyGems, but remember that you can omit the rubygems line if your
+environment does not need it. The following piece of code
 
 ``` ruby
 conn = MarchHare.connect
 ```
 
-connects to RabbitMQ running on localhost, with the default port (5672), username (guest), password (guest) and virtual host ('/').
+connects to RabbitMQ running on localhost, with the default port
+(5672), username (guest), password (guest) and virtual host ('/').
 
 The next line
 
@@ -130,10 +136,13 @@ The next line
 ch = conn.create_channel
 ```
 
-opens a new _channel_. AMQP 0.9.1 is a multi-channeled protocol that uses channels to multiplex a TCP connection.
+opens a new _channel_. AMQP 0.9.1 is a multi-channeled protocol that
+uses channels to multiplex a TCP connection.
 
-Channels are opened on a connection. `MarchHare::Session#create_channel` will return only when March Hare
-receives a confirmation that the channel is open from RabbitMQ.
+Channels are opened on a
+connection. `MarchHare::Session#create_channel` will return only when
+March Hare receives a confirmation that the channel is open from
+RabbitMQ.
 
 This line
 
@@ -141,8 +150,10 @@ This line
 q  = ch.queue("march_hare.examples.hello_world", :auto_delete => true)
 ```
 
-declares a **queue** on the channel that we have just opened. Consumer applications get messages from queues. We declared this queue with
-the "auto-delete" parameter. Basically, this means that the queue will be deleted when there are no more processes consuming messages from it.
+declares a **queue** on the channel that we have just opened. Consumer
+applications get messages from queues. We declared this queue with the
+"auto-delete" parameter. Basically, this means that the queue will be
+deleted when there are no more processes consuming messages from it.
 
 The next line
 
@@ -150,9 +161,13 @@ The next line
 x  = ch.default_exchange
 ```
 
-instantiates an **exchange**. Exchanges receive messages that are sent by producers. Exchanges route messages to queues according to rules called **bindings**.
-In this particular example, there are no explicitly defined bindings. The exchange that we use is known as the **default exchange** and it has implied
-bindings to all queues. Before we get into that, let us see how we define a handler for incoming messages
+instantiates an **exchange**. Exchanges receive messages that are sent
+by producers. Exchanges route messages to queues according to rules
+called **bindings**.  In this particular example, there are no
+explicitly defined bindings. The exchange that we use is known as the
+**default exchange** and it has implied bindings to all queues. Before
+we get into that, let us see how we define a handler for incoming
+messages
 
 ``` ruby
 c = q.subscribe do |delivery_info, metadata, payload|
@@ -160,8 +175,11 @@ c = q.subscribe do |delivery_info, metadata, payload|
 end
 ```
 
-`MarchHare::Queue#subscribe` takes a block that will be called every time a message arrives. This will happen in a thread pool, so `MarchHare::Queue#subscribe`
-does not block the thread that invokes it. It returns a **consumer**, a message delivery subscription that can be cancelled.
+`MarchHare::Queue#subscribe` takes a block that will be called every
+time a message arrives. This will happen in a thread pool, so
+`MarchHare::Queue#subscribe` does not block the thread that invokes
+it. It returns a **consumer**, a message delivery subscription that
+can be cancelled.
 
 Finally, we publish our message
 
@@ -169,24 +187,33 @@ Finally, we publish our message
 x.publish("Hello!", :routing_key => q.name)
 ```
 
-Routing key is one of the **message properties**. The default exchange will route the message to a queue that has the same name as the message's routing key.
-This is how our message ends up in the "bunny.examples.hello_world" queue.
+Routing key is one of the **message properties**. The default exchange
+will route the message to a queue that has the same name as the
+message's routing key.  This is how our message ends up in the
+"bunny.examples.hello_world" queue.
 
 This diagram demonstrates the "Hello, world" example data flow:
 
 ![Hello, World AMQP example data flow](http://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/001_hello_world_example_routing.png)
 
-For the sake of simplicity, both the message producer (publisher) and the consumer are running in the same Ruby process.
-Now let us move on to a little bit more sophisticated example.
+For the sake of simplicity, both the message producer (publisher) and
+the consumer are running in the same Ruby process.  Now let us move on
+to a little bit more sophisticated example.
 
 ## Blabblr: one-to-many publish/subscribe (pubsub) example
 
-The previous example demonstrated how a connection to a broker is made and how to do 1:1 communication using the default exchange. Now let us take a look
-at another common scenario: broadcast, or multiple consumers and one producer.
+The previous example demonstrated how a connection to a broker is made
+and how to do 1:1 communication using the default exchange. Now let us
+take a look at another common scenario: broadcast, or multiple
+consumers and one producer.
 
-A very well-known broadcast example is Twitter: every time a person tweets, followers receive a notification. Blabbr, our imaginary information network,
-models this scenario: every network member has a separate queue and publishes blabs to a separate exchange. Three Blabbr members, Joe, Aaron and Bob,
-follow the official NBA account on Blabbr to get updates about what is happening in the world of basketball. Here is the code:
+A very well-known broadcast example is Twitter: every time a person
+tweets, followers receive a notification. Blabbr, our imaginary
+information network, models this scenario: every network member has a
+separate queue and publishes blabs to a separate exchange. Three
+Blabbr members, Joe, Aaron and Bob, follow the official NBA account on
+Blabbr to get updates about what is happening in the world of
+basketball. Here is the code:
 
 ``` ruby
 require "rubygems"
@@ -225,8 +252,10 @@ In this example, opening a channel is no different to opening a channel in the p
 x   = ch.fanout("nba.scores")
 ```
 
-The exchange that we declare above using `MarchHare::Channel#fanout` is a **fanout exchange**.
-A fanout exchange delivers messages to all of the queues that are bound to it: exactly what we want in the case of Blabbr!
+The exchange that we declare above using `MarchHare::Channel#fanout`
+is a **fanout exchange**.  A fanout exchange delivers messages to all
+of the queues that are bound to it: exactly what we want in the case
+of Blabbr!
 
 This piece of code
 
@@ -236,42 +265,55 @@ ch.queue("joe",   :auto_delete => true).bind(x).subscribe do |meta, payload|
 end
 ```
 
-is similar to the subscription code that we used for message delivery previously,
-but what does that `MarchHare::Queue#bind` method do? It sets up a binding between the queue and
-the exchange that you pass to it. We need to do this to make sure that our fanout exchange
-routes messages to the queues of any subscribed followers.
+is similar to the subscription code that we used for message delivery
+previously, but what does that `MarchHare::Queue#bind` method do? It
+sets up a binding between the queue and the exchange that you pass to
+it. We need to do this to make sure that our fanout exchange routes
+messages to the queues of any subscribed followers.
 
 ``` ruby
 x.publish("BOS 101, NYK 89")
 x.publish("ORL 85, ALT 88")
 ```
 
-publishes two messages using `MarchHare::Exchange#publish`. Blabbr members use a fanout exchange for
-publishing, so there is no need to specify a message routing key because every queue that is
-bound to the exchange will get its own copy of all messages, regardless of the queue name and
-routing key used.
+publishes two messages using `MarchHare::Exchange#publish`. Blabbr
+members use a fanout exchange for publishing, so there is no need to
+specify a message routing key because every queue that is bound to the
+exchange will get its own copy of all messages, regardless of the
+queue name and routing key used.
 
 A diagram for Blabbr looks like this:
 
 ![Blabbr Data Flow](https://github.com/ruby-amqp/amqp/raw/master/docs/diagrams/002_blabbr_example_routing.png)
 
-Blabbr is pretty unlikely to secure hundreds of millions of dollars in funding,
-but it does a pretty good job of demonstrating how one can use RabbitMQ fanout exchanges to do broadcasting.
+Blabbr is pretty unlikely to secure hundreds of millions of dollars in
+funding, but it does a pretty good job of demonstrating how one can
+use RabbitMQ fanout exchanges to do broadcasting.
 
 
 ## Weathr: many-to-many topic routing example
 
-So far, we have seen point-to-point communication and broadcasting. Those two communication styles are possible with many protocols, for instance, HTTP handles these scenarios just fine.
-You may ask "what differentiates RabbitMQ?" Well, next we are going to introduce you to **topic exchanges** and routing with patterns, one of the features that makes RabbitMQ very powerful.
+So far, we have seen point-to-point communication and
+broadcasting. Those two communication styles are possible with many
+protocols, for instance, HTTP handles these scenarios just fine.  You
+may ask "what differentiates RabbitMQ?" Well, next we are going to
+introduce you to **topic exchanges** and routing with patterns, one of
+the features that makes RabbitMQ very powerful.
 
-Our third example involves weather condition updates. What makes it different from the previous two examples is that not all of the consumers are interested in all of the messages.
-People who live in Portland usually do not care about the weather in Hong Kong (unless they are visiting soon). They are much more interested in weather conditions around Portland,
-possibly all of Oregon and sometimes a few neighbouring states.
+Our third example involves weather condition updates. What makes it
+different from the previous two examples is that not all of the
+consumers are interested in all of the messages.  People who live in
+Portland usually do not care about the weather in Hong Kong (unless
+they are visiting soon). They are much more interested in weather
+conditions around Portland, possibly all of Oregon and sometimes a few
+neighbouring states.
 
-Our example features multiple consumer applications monitoring updates for different regions.
-Some are interested in updates for a specific city, others for a specific state and so on,
-all the way up to continents. Updates may overlap so that an update for San Diego, CA
-appears as an update for California, but also should show up on the North America updates list.
+Our example features multiple consumer applications monitoring updates
+for different regions.  Some are interested in updates for a specific
+city, others for a specific state and so on, all the way up to
+continents. Updates may overlap so that an update for San Diego, CA
+appears as an update for California, but also should show up on the
+North America updates list.
 
 Here is the code:
 
@@ -327,17 +369,22 @@ The first line that is different from the Blabbr example is
 x = ch.topic("weathr", :auto_delete => true)
 ```
 
-We use a topic exchange here. Topic exchanges are used for [multicast](http://en.wikipedia.org/wiki/Multicast) messaging
-where consumers indicate which topics they are interested in (think of it as subscribing to a feed for an individual tag in
-your favourite blog as opposed to the full feed). Routing with a topic exchange is done by specifying a **routing pattern**
-on binding, for example:
+We use a topic exchange here. Topic exchanges are used for
+[multicast](http://en.wikipedia.org/wiki/Multicast) messaging where
+consumers indicate which topics they are interested in (think of it as
+subscribing to a feed for an individual tag in your favourite blog as
+opposed to the full feed). Routing with a topic exchange is done by
+specifying a **routing pattern** on binding, for example:
 
-``` ruby
-ch.queue("americas.south").bind(exchange, :routing_key => "americas.south.#").subscribe do |metadata, payload|
-  puts "An update for South America: #{payload}, routing key is #{metadata.routing_key}"
-end
-```
-Here we bind a queue with the name of "americas.south" to the topic exchange declared earlier using the `MarchHare::Queue#bind` method.  This means that only messages with a routing key matching "americas.south.#" will be routed to that queue. A routing pattern consists of several words separated by dots, in a similar way to URI path segments joined by slashes. Here are a few examples:
+``` ruby ch.queue("americas.south").bind(exchange, :routing_key =>
+"americas.south.#").subscribe do |metadata, payload| puts "An update
+for South America: #{payload}, routing key is #{metadata.routing_key}"
+end ``` Here we bind a queue with the name of "americas.south" to the
+topic exchange declared earlier using the `MarchHare::Queue#bind`
+method.  This means that only messages with a routing key matching
+"americas.south.#" will be routed to that queue. A routing pattern
+consists of several words separated by dots, in a similar way to URI
+path segments joined by slashes. Here are a few examples:
 
  * asia.southeast.thailand.bangkok
  * sports.basketball
@@ -364,7 +411,9 @@ but not
  * americas.south
  * americas.south.chile.santiago
 
-so "*" only matches a single word. The AMQP 0.9.1 specification says that topic segments (words) may contain the letters A-Z and a-z and digits 0-9.
+so "*" only matches a single word. The AMQP 0.9.1 specification says
+that topic segments (words) may contain the letters A-Z and a-z and
+digits 0-9.
 
 A (very simplistic) diagram to demonstrate topic exchange in action:
 
