@@ -1,19 +1,19 @@
 ---
-title: "Working with RabbitMQ queues and consumers from Ruby with Hot Bunnies"
+title: "Working with RabbitMQ queues and consumers from Ruby with March Hare"
 layout: article
 ---
 
 ## About this guide
 
-This guide covers everything related to RabbitMQ queues, common usage scenarios and how to accomplish
-typical operations using Hot Bunnies.
+This guide covers everything related to RabbitMQ queues, common usage
+scenarios and how to accomplish typical operations using March Hare.
 
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>
 (including images and stylesheets). The source is available [on Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
-## What version of Hot Bunnies does this guide cover?
+## What version of March Hare does this guide cover?
 
-This guide covers Hot Bunnies 2.0.
+This guide covers March Hare 2.0.
 
 
 ## RabbitMQ Queues: Overview
@@ -112,7 +112,7 @@ result in a channel-level exception with reply code `403 (ACCESS_REFUSED)` and a
 
     ACCESS_REFUSED - queue name 'amq.queue' contains reserved prefix 'amq.*'
     
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `MarchHare::ChannelAlreadyClosed` error.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then March Hare will raise a `MarchHare::ChannelAlreadyClosed` error.
 
 ### Queue Re-Declaration With Different Attributes
 
@@ -121,7 +121,7 @@ will be raised. The reply text will be similar to this:
 
     PRECONDITION_FAILED - parameters for queue 'bunny.examples.channel_exception' in vhost '/' not equivalent
 
-This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then Hot Bunnies will raise a `MarchHare::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
+This error results in the channel that was used for the declaration being forcibly closed by RabbitMQ. If the program subsequently tries to communicate with RabbitMQ using the same channel without re-opening it then March Hare will raise a `MarchHare::ChannelAlreadyClosed` error. In order to continue communications in the same program after such an error, a different channel would have to be used.
 
 ## Queue Life-cycle Patterns
 
@@ -293,7 +293,7 @@ metadata.delivery_tag
 #### Blocking or Non-Blocking Behavior
 
 The subscribe method will not block the calling thread by default. If you want to block the caller, pass `:block => true` to
-`MarchHare::Queue#subscribe`. In Hot Bunnies, network activity and dispatch of delivered messages
+`MarchHare::Queue#subscribe`. In March Hare, network activity and dispatch of delivered messages
 to consumers happens in separate threads that the library maintains internally, so it does not have to
 block the thread that calls `MarchHare::Queue#subscribe`. However, it may be convenient to do so
 in long-running consumer applications.
@@ -696,7 +696,7 @@ ch1.reject(metadata.delivery_tag, true)
 Messages are rejected with the `basic.reject` AMQP method. However, there is one notable limitation that `basic.reject` has:
 there is no way to reject multiple messages, as you can do with acknowledgements. However, if you are using [RabbitMQ](http://rabbitmq.com), then there is a solution.
 RabbitMQ provides an AMQP 0.9.1 extension known as [negative acknowledgements](http://www.rabbitmq.com/extensions.html#negative-acknowledgements) (nacks) and
-Hot Bunnies supports this extension. For more information, please refer to the [RabbitMQ Extensions guide](/articles/rabbitmq_extensions.html).
+March Hare supports this extension. For more information, please refer to the [RabbitMQ Extensions guide](/articles/rabbitmq_extensions.html).
 
 ### QoS — Prefetching messages
 
@@ -805,7 +805,7 @@ result in a channel-level exception.
 It is possible to query the number of messages in a queue and the number of consumers it has by declaring the queue
 with the `:passive` attribute set.
 The response (`queue.declare-ok` AMQP method) will include the number of messages along with
-the number of consumers. However, Hot Bunnies provides a convenience method, `MarchHare::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
+the number of consumers. However, March Hare provides a convenience method, `MarchHare::Queue#status`, that returns a hash containing `:message_count` and `:consumer_count`. There are two further convenience methods that provide both pieces of information individually -
 
  * `MarchHare::Queue#message_count`
  * `MarchHare::Queue#consumer_count`
@@ -914,6 +914,6 @@ We recommend that you read the following guides first, if possible, in this orde
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [Hot Bunnies mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [March Hare mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
 Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
