@@ -132,8 +132,10 @@ This guide covers:
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide on Twitter or the [ruby-amqp mailing list](https://groups.google.com/forum/?fromgroups#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide on
+Twitter or the [ruby-amqp mailing
+list](https://groups.google.com/forum/?fromgroups#!forum/ruby-amqp).
 
-Let us know what was unclear or what has not been covered.
-Maybe you do not like the guide style or grammar or discover spelling mistakes.
+Let us know what was unclear or what has not been covered.  Maybe you
+do not like the guide style or grammar or discover spelling mistakes.
 Reader feedback is key to making the documentation better.
