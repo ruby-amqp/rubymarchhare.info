@@ -32,7 +32,7 @@ This guide covers:
 
 This guide covers:
 
- * How to connect to RabbitMQ with Bunny 0.9+
+ * How to connect to RabbitMQ with March Hare
  * How to use connection URI to connect to RabbitMQ (also: in PaaS environments such as Heroku and CloudFoundry)
  * How to open a channel
  * How to close a channel
@@ -43,7 +43,7 @@ This guide covers:
 
 This guide covers:
 
- * How to declare AMQP queues with Bunny
+ * How to declare AMQP queues with March Hare
  * Queue properties
  * How to declare server-named queues
  * How to declare temporary exclusive queues
@@ -61,7 +61,7 @@ This guide covers:
 This guide covers:
 
  * Exchange types
- * How to declare AMQP exchanges with Bunny
+ * How to declare AMQP exchanges with March Hare
  * How to publish messages
  * Exchange propreties
  * Fanout exchanges
@@ -94,9 +94,9 @@ This guide covers:
 
 ### [RabbitMQ Extensions to AMQP 0.9.1](/articles/extensions.html)
 
-This guide covers [RabbitMQ extensions](http://www.rabbitmq.com/extensions.html) and how they are used in Bunny:
+This guide covers [RabbitMQ extensions](http://www.rabbitmq.com/extensions.html) and how they are used in March Hare:
 
- * How to use Publishing Confirms with Bunny
+ * How to use Publishing Confirms with March Hare
  * How to use exchange-to-exchange bindings
  * How to the alternate exchange extension
  * How to set per-queue message TTL
@@ -119,7 +119,7 @@ This guide covers:
 
 This guide covers:
 
- * How to use TLS (SSL) connections to RabbitMQ with Bunny
+ * How to use TLS (SSL) connections to RabbitMQ with March Hare
 
 
 
@@ -127,7 +127,7 @@ This guide covers:
 
 This guide covers:
 
- * What to check when your apps that use Bunny and RabbitMQ misbehave
+ * What to check when your apps that use March Hare and RabbitMQ misbehave
 
 
 
