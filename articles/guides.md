@@ -1,19 +1,20 @@
 ---
-title: "Bunny: all documentation guides"
+title: "March Hare: all documentation guides"
 layout: article
 ---
 
 ## Guide list
 
-[Bunny documentation](https://github.com/ruby-amqp/rubymarchhare.info) is organized as a number of guides, covering all kinds of topics.
+[March Hare documentation](https://github.com/ruby-amqp/rubymarchhare.info) is organized as a number of guides, covering all kinds of topics.
 
 We recommend that you read these guides, if possible, in this order:
 
 
 ###  [Getting started](/articles/getting_started.html)
 
-An overview of Bunny with a quick tutorial that helps you to get started with it. It should take about
-20 minutes to read and study the provided code examples.
+An overview of March Hare with a quick tutorial that helps you to get
+started with it. It should take about 20 minutes to read and study the
+provided code examples.
 
 ### [AMQP 0.9.1 Model Concepts](http://www.rabbitmq.com/tutorials/amqp-concepts.html)
 
