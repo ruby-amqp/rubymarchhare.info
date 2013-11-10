@@ -5,7 +5,9 @@ layout: article
 
 ## Guide list
 
-[March Hare documentation](https://github.com/ruby-amqp/rubymarchhare.info) is organized as a number of guides, covering all kinds of topics.
+[March Hare
+documentation](https://github.com/ruby-amqp/rubymarchhare.info) is
+organized as a number of guides, covering all kinds of topics.
 
 We recommend that you read these guides, if possible, in this order:
 
