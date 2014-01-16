@@ -58,7 +58,7 @@ need at least RabbitMQ v2.0 for use with this guide).</div>
 
 ### Make sure that you have Ruby and [Rubygems](http://docs.rubygems.org/read/chapter/3) installed
 
-This guide assumes that you have JRuby 1.7+ installed.
+This guide assumes that you have [JRuby](http://jruby.org) 1.7+ installed.
 
 ### You can use Rubygems to install March Hare
 
