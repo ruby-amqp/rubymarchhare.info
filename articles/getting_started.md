@@ -25,7 +25,7 @@ GitHub](https://github.com/ruby-amqp/rubymarchhare.info).
 
 ## Which versions of March Hare does this guide cover?
 
-This guide covers March Hare 2.0, including preview releases.
+This guide covers March Hare 2.1, including preview releases.
 
 ## Installing RabbitMQ
 
