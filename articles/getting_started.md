@@ -69,7 +69,7 @@ This guide assumes that you have JRuby 1.7+ installed.
 ``` ruby
 source "https://rubygems.org"
 
-gem "march_hare", "~> 2.0.0.pre1"
+gem "march_hare", "~> 2.1.0"
 ```
 
 ### Verifying your installation
@@ -81,7 +81,7 @@ irb -rubygems
 :001 > require "march_hare"
 => true
 :002 > MarchHare::VERSION
-=> "2.0.0.pre1"
+=> "2.1.0"
 ```
 
 ## "Hello, world" example
