@@ -13,7 +13,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 ## What version of March Hare does this guide cover??
 
-This guide covers March Hare 2.1.
+This guide covers March Hare 2.3.
 
 ## Entity durability and message persistence
 
