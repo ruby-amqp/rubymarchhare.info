@@ -1,5 +1,5 @@
 ---
-title: "Bunny: Community and Getting Help"
+title: "March Hare: Community and Getting Help"
 layout: article
 ---
 
