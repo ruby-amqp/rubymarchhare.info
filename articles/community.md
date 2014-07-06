@@ -6,7 +6,7 @@ layout: article
 ## Mailing List
 
 [Bunny has a mailing list](groups.google.com/group/ruby-amqp). We encourage you
-to also join the [rabbitmq-discuss](https://lists.rabbitmq.com/cgi-bin/mailman/listinfo/rabbitmq-discuss) mailing list. Feel free to ask any questions that you may have.
+to also join the [rabbitmq-users](https://groups.google.com/forum/#!forum/rabbitmq-users) mailing list. Feel free to ask any questions that you may have.
 
 
 ## IRC
