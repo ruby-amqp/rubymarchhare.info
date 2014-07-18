@@ -18,7 +18,7 @@ Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 ## What version of March Hare does this guide cover?
 
-This guide covers March Hare 2.4 and later versions.
+This guide covers March Hare 2.5 and later versions.
 
 
 ## First steps
