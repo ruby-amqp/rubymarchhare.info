@@ -96,6 +96,22 @@ If a connection does not succeed, Bunny will raise one of the following exceptio
  * `java.net.ConnectException` indicates that RabbitMQ is not running on the target host or it binds to a different port
 
 
+### Heartbeats and Connection Failure Detection
+
+Due to how TCP works, it sometimes can take a while (minutes) to detect an unresponsive
+peer. To make connection failure detection quicker, the protocol has a feature called
+"heartbeats". Client and server exchange heartbeat frames periodically (about 1/2
+the configured timeout value). When either peer detects 2 missed heartbeats, it
+should consider the connection to be dead.
+
+`:heartbeat` is the option passed to `MarchHare.connect` to configure the desired
+timeout interval. We recommend setting this value in the 10-30 seconds range.
+
+Enabling heartbeats will also ensure firewalls won't consider connections with low
+activity to be stale.
+
+
+
 ## PaaS Environments
 
 ### The RABBITMQ_URL Environment Variable
