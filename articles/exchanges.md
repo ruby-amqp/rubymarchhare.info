@@ -14,7 +14,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 ## What version of March Hare does this guide cover??
 
-This guide covers March Hare 2.5.
+This guide covers March Hare 2.8.
 
 
 ## RabbitMQ Exchanges — Overview
