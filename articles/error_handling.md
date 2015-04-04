@@ -27,7 +27,7 @@ Github](https://github.com/ruby-amqp/rubymarchhare.info).
 
 ## What version of March Hare does this guide cover??
 
-This guide covers March Hare 2.8.
+This guide covers March Hare 2.9.
 
 
 ## Initial RabbitMQ Connection Failures

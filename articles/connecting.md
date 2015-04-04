@@ -13,7 +13,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 ## What version of March Hare does this guide cover??
 
-This guide covers March Hare 2.8.
+This guide covers March Hare 2.9.
 
 
 
@@ -205,12 +205,14 @@ We recommend that you read the following guides first, if possible, in this orde
  * [Durability and Related Matters](/articles/durability.html)
  * [Error Handling and Recovery](/articles/error_handling.html)
  * [Troubleshooting](/articles/troubleshooting.html)
- * [Using TLS (SSL) Connections](/articles/tls.html)
 
 
 
 ## Tell Us What You Think!
 
-Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp) or the [March Hare mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
+Please take a moment to tell us what you think about this guide [on Twitter](http://twitter.com/rubyamqp)
+or the [March Hare mailing list](https://groups.google.com/forum/#!forum/ruby-amqp)
 
-Let us know what was unclear or what has not been covered. Maybe you do not like the guide style or grammar or discover spelling mistakes. Reader feedback is key to making the documentation better.
+Let us know what was unclear or what has not been covered. Maybe you
+do not like the guide style or grammar or discover spelling
+mistakes. Reader feedback is key to making the documentation better.

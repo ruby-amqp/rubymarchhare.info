@@ -25,13 +25,13 @@ GitHub](https://github.com/ruby-amqp/rubymarchhare.info).
 
 ## Which versions of March Hare does this guide cover?
 
-This guide covers March Hare 2.8, including preview releases.
+This guide covers March Hare 2.9, including preview releases.
 
 ## Installing RabbitMQ
 
 The [RabbitMQ site](http://rabbitmq.com) has a good [installation
 guide](http://www.rabbitmq.com/install.html) that addresses many
-operating systems.  On Mac OS X, the fastest way to install RabbitMQ
+operating systems. On Mac OS X, the fastest way to install RabbitMQ
 is with [Homebrew](http://mxcl.github.com/homebrew/):
 
     brew install rabbitmq
@@ -69,7 +69,7 @@ This guide assumes that you have [JRuby](http://jruby.org) 1.7+ installed.
 ``` ruby
 source "https://rubygems.org"
 
-gem "march_hare", "~> 2.8.0"
+gem "march_hare", "~> 2.9.0"
 ```
 
 ### Verifying your installation
@@ -81,7 +81,7 @@ irb -rubygems
 :001 > require "march_hare"
 => true
 :002 > MarchHare::VERSION
-=> "2.8.0"
+=> "2.9.0"
 ```
 
 ## "Hello, world" example
