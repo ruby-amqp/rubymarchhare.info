@@ -55,7 +55,7 @@ Default connection parameters are
   :port      => 5672,
   :ssl       => false,
   :vhost     => "/",
-  :userbane  => "guest",
+  :username  => "guest",
   :password  => "guest",
   :heartbeat => 0, # will use RabbitMQ setting
 }
