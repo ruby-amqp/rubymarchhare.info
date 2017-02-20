@@ -25,7 +25,7 @@ GitHub](https://github.com/ruby-amqp/rubymarchhare.info).
 
 ## Which versions of March Hare does this guide cover?
 
-This guide covers March Hare 2.22, including preview releases.
+This guide covers March Hare 3.0, including preview releases.
 
 ## Installing RabbitMQ
 
@@ -56,7 +56,7 @@ need at least RabbitMQ v2.0 for use with this guide).</div>
 
 ## Installing March Hare
 
-### Make sure that you have JRuby 9.0.0.0 installed
+### Make sure that you have JRuby 9.x installed
 
 This guide assumes that you have [JRuby](http://jruby.org) 9.0.0.0 installed.
 
@@ -69,7 +69,7 @@ This guide assumes that you have [JRuby](http://jruby.org) 9.0.0.0 installed.
 ``` ruby
 source "https://rubygems.org"
 
-gem "march_hare", "~> 2.22.0"
+gem "march_hare", "~> 3.0"
 ```
 
 ### Verifying your installation
@@ -81,7 +81,7 @@ irb -rubygems
 :001 > require "march_hare"
 => true
 :002 > MarchHare::VERSION
-=> "2.12.0"
+=> "3.0.0"
 ```
 
 ## "Hello, world" example
