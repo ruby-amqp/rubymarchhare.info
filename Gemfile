@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "jekyll", "~> 3.8.0"
+gem "jekyll", "~> 4.2.2"
 # with Ruby 2.0 on OS X, you may need to install
 # it manually with --with-iconv-dir:
 #
@@ -9,4 +9,4 @@ gem "iconv"
 gem "albino"
 gem "redcarpet"
 gem "rouge"
-gem "rake", "~> 12.3"
+gem "rake"
